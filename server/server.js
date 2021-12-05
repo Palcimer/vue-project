@@ -1,14 +1,17 @@
-require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
+require('./plugins/pm2Bus');
 
 (async function(){
 	// 앱 초기화
 	const app = express();
-	const port = process.env.VUE_APP_SERVER_PORT || 3000;
+	const port = process.env.VUE_APP_SERVER_PORT || 4000;
 	const webServer = http.createServer(app);
+
+	const socket = require('./plugins/socket');
+	socket(webServer);
 
 	// cors
 	// const cors = require('cors');

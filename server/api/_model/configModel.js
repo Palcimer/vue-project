@@ -10,14 +10,14 @@ const configModel = {
 		global.siteConfig = {};
 		global.clientConfig = {};
 		for(const row of rows) {
-			configModel.setConfigItem(row);
+			configModel.setConfigItem(row, true);
 		}
 		console.log('설정 로드')
 		// console.log(siteConfig);
 		// console.log('client config');
 		// console.log(clientConfig);
 	},
-	setConfigItem(item) {
+	setConfigItem(item, isLoad = false) {
 		configModel.clearConfigItem(item.cf_key);
 
 		let val;
@@ -32,20 +32,26 @@ const configModel = {
 		} else {
 			siteConfig[item.cf_key] = val;
 		}
-		// console.log(item.cf_key, val);
-		// console.log('설정 로드')
-		// console.log(siteConfig);
-		// console.log('client config');
-		// console.log(clientConfig);
+		
+		// 초기 로드가 아니면 메시지를 보낸다
+		if(!isLoad) {
+			process.send({
+				type: 'config:update',
+				data: item,
+			})
+		}
 	},
-	clearConfigItem(cf_key) {
+	clearConfigItem(cf_key, isLoad = false) {
 		// console.log('delete', cf_key);
 		delete clientConfig[cf_key];
 		delete siteConfig[cf_key];
-		// console.log('설정 로드')
-		// console.log(siteConfig);
-		// console.log('client config');
-		// console.log(clientConfig);
+		
+		if(!isLoad) {
+			process.send({
+				type: 'config:remove',
+				data: cf_key,
+			})
+		}
 	},
 	async duplicateCheck({ field, value }) {
 		const sql = sqlHelper.SelectSimple(
