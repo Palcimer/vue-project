@@ -14,11 +14,11 @@ const configModel = {
 		}
 		console.log('설정 로드')
 		// console.log(siteConfig);
-		// console.log('client config');
-		// console.log(clientConfig);
+		console.log('client config');
+		console.log(clientConfig);
 	},
 	setConfigItem(item, isLoad = false) {
-		configModel.clearConfigItem(item.cf_key);
+		configModel.clearConfigItem(item.cf_key, isLoad);
 
 		let val;
 		if(item.cf_type == "Json") {
@@ -78,6 +78,7 @@ const configModel = {
 			return rows;
 		} else {
 			// where.cf_client = 1;
+			console.log('get',clientConfig )
 			return clientConfig;
 		}
 		

@@ -51,6 +51,7 @@ const store = new Vuex.Store({
 		async configLoad({ commit }) {
 			const { $axios } = Vue.prototype;
 			const data = await $axios.get('/api/config');
+			console.log("asss", data);
 			const keys = Object.keys(data);
 			for (const key of keys) {
 				commit('SET_CONFIG', { key, value: data[key] });

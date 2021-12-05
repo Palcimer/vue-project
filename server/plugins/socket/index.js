@@ -1,9 +1,15 @@
+require('dotenv').config();
 const { Server } = require("socket.io");
 const configHandler = require("./configHandler");
+const redisAdapter = require('socket.io-redis');
+
+const {REDIS_HOST, REDIS_PORT} = process.env;
+console.log('redis', REDIS_HOST, REDIS_PORT);
 
 module.exports = function(webServer) {
     //webServer = server.js에서 만들어지는 webServer
     const io = new Server(webServer);
+    io.adapter(redisAdapter({ host: REDIS_HOST, port: REDIS_PORT }));
 
     io.on("connection", (socket) => {
         configHandler(io, socket);
