@@ -26,12 +26,14 @@ export const getters = {
 };
 
 export const actions = {
-	async initUser({ commit }) {
+	async initUser({ commit, dispatch }) {
 		const { $axios } = Vue.prototype;
 		const data = await $axios.get('/api/member/auth');
 		if (data && data.member && data.token) {
 			commit('SET_MEMBER', data.member);
 			commit('SET_TOKEN', data.token);
+			// 새로고침 시 room join 
+			dispatch('socket/joinRoom', data.member.mb_id, {root: true});
 		}
 	},
 	async duplicateCheck(ctx, { field, value }) {
@@ -53,14 +55,22 @@ export const actions = {
 		}
 		return !!data;
 	},
-	async signInLocal({ commit }, form) {
+	async signInLocal({ commit, dispatch }, form) {
 		const { $axios } = Vue.prototype;
 		const data = await $axios.post(`/api/member/loginLocal`, form);
 		if (data && data.member && data.token) {
 			commit('SET_MEMBER', data.member);
 			commit('SET_TOKEN', data.token);
+			// 로컬 로그인 시 room join 
+			dispatch('socket/joinRoom', data.member.mb_id, {root: true});
 		}
 		return !!data;
+	},
+	async signInSocial({ commit, dispatch }, data) {
+		commit('SET_MEMBER', data.member);
+		commit('SET_TOKEN', data.token);
+		// 소셜 로그인 시 room join 
+		dispatch('socket/joinRoom', data.member.mb_id, {root: true});
 	},
 	async checkPassword({ commit }, form) {
 		const { $axios } = Vue.prototype;
@@ -68,13 +78,14 @@ export const actions = {
 		return data;
 	},
 
-	async signOut({ commit, state }) {
+	async signOut({ commit, state, dispatch }) {
 		const mb_name = state.member.mb_name;
 		const { $axios } = Vue.prototype;
 		await $axios.get('/api/member/signOut');
 		// console.log('mb_name', mb_name);
+		dispatch('socket/leaveRoom', state.member.mb_id, {root: true});
 		commit('SET_MEMBER', null);
-		commit('SET_TOKEN', null);
+		commit('SET_TOKEN', null);		
 		// VueCookies.remove('token');
 		return mb_name;
 	},
