@@ -9,7 +9,7 @@ require('./plugins/pm2Bus');
 	const app = express();
 	const port = process.env.VUE_APP_SERVER_PORT || 4000;
 	const webServer = http.createServer(app);
-
+ 
 	const socket = require('./plugins/socket');
 	socket(webServer);
 
@@ -108,7 +108,7 @@ require('./plugins/pm2Bus');
 				}
 			} 
 		}).pipe(res);
-	});
+	});             
 
 	// 서버 응답
 	webServer.listen(port, () => {

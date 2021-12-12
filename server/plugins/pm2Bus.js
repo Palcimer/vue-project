@@ -17,4 +17,13 @@ pm2.launchBus(function(err, pm2_bus) {
     delete clientConfig[data];
 	  delete siteConfig[data];
   })
+
+  // 서버 재시작 커맨드 실행
+  pm2_bus.on('config:restart', function(packet) {
+    console.log('서버 재시작 시도')
+    const exec = require('child_process').exec;
+    exec('pm2 reload all', (err) => {
+      console.log('server restart msg', err)
+    })
+  })
 })

@@ -4,7 +4,7 @@ function getMixin(vm) {
 		return  socket.call(vm);
 	}
 }
-
+const serverMixin = null;
 const clientMixin = {
     data() {
         return {
@@ -28,4 +28,4 @@ const clientMixin = {
     }
 }
 
-export default clientMixin;
+export default process.env.VUE_ENV === 'server' ? serverMixin : clientMixin;

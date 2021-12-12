@@ -2,6 +2,7 @@ const db = require('../../plugins/mysql');
 const TABLE = require('../../../util/TABLE');
 const { LV, isGrant } = require('../../../util/level');
 const sqlHelper = require('../../../util/sqlHelper');
+const { restart } = require('pm2');
 
 const configModel = {
 	async load() {
@@ -109,6 +110,16 @@ const configModel = {
 		configModel.clearConfigItem(cf_key);// 설정값 삭제
 		return row.affectedRows == 1;
 	},
+	async restart(req) {
+		if(!isGrant(req, LV.SUPER)) {
+			throw new Error('최고관리자만 서버 재시작이 가능합니다.');
+		}
+		process.send({
+			type: 'config:restart',
+			data: 'restart',
+		});
+		return true;
+	}
 
 };
 

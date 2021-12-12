@@ -29,5 +29,11 @@ router.delete('/:cf_key', async(req,res)=>{
 	res.json(result);
 })
 
+// 서버 재시작
+router.get('/restart', async(req, res)=> {
+	const result = await modelCall(configModel.restart, req);
+	res.json(result);
+});
+
 
 module.exports = router;
