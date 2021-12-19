@@ -98,4 +98,10 @@ router.post('/checkPassword', async (req, res)=>{
 	res.json(result);
 });
 
+// 회원관리 페이지용 멤버 불러오기
+router.get('/', async (req, res)=>{
+	const result = await modelCall(memberModel.getMembers, req);
+	res.json(result);
+});
+
 module.exports = router;

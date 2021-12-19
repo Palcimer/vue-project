@@ -6,7 +6,7 @@ const path = require('path');
 
 const sqlHelper = require('../../../util/sqlHelper');
 const TABLE = require('../../../util/TABLE');
-const { LV } = require('../../../util/level');
+const { LV, isGrant } = require('../../../util/level');
 const moment = require('../../../util/moment');
 const { getIp } = require('../../../util/lib');
 
@@ -381,10 +381,25 @@ const memberModel = {
 		const sql = sqlHelper.SelectSimple(TABLE.MEMBER, data, ['COUNT(*) AS cnt']);
 		const [[{ cnt }]] = await db.execute(sql.query, sql.values);
 		if (cnt == 0) {
-			throw new Error('비밀번호가 일치 하지 않습니다.');
+			throw new Error('비밀번호가 일치하지 않습니다.');
 		} else {
 			return true;
 		}
+	},
+	async getMembers(req) {
+		if(!isGrant(req, LV.ADMIN)) {
+			throw new Error('회원 목록 조회 권한이 없습니다.');
+		}
+		const options = req.query;
+		const sql = sqlHelper.SelectLimit(TABLE.MEMBER, options);
+		const [items] = await db.execute(sql.query);
+		const [[{totalItems}]] = await db.execute(sql.countQuery);
+		items.forEach(item => {
+			clearMemberField(item);
+		});
+		console.log(items, totalItems, sql, options)
+		return { items, totalItems, sql, options };
+		
 	}
 }
 
