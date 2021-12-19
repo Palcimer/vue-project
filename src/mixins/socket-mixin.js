@@ -23,7 +23,7 @@ const clientMixin = {
 	},
     destroyed() {
         for(const ev of this.socketEvents) {
-            this.$socket.offn(ev);
+            this.$socket.off(ev);
         } 
     }
 }
