@@ -49,7 +49,9 @@ const cilentConfig = {
 };
 
 module.exports = {
+	lintOnSave: false,
 	devServer: {
+		overlay: false,
 		proxy: {
 			'/api' : {
 				target : `http://localhost:${process.env.VUE_APP_SERVER_PORT}`
