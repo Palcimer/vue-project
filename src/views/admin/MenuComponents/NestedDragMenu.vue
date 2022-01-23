@@ -48,7 +48,7 @@
                 readonly
                 class="ml-2"
               />
-              <display-level :level="item.grant" :size="28"/>
+              <display-level :level="item.grant" :size="28" />
               <v-text-field
                 label="link"
                 v-model="item.to"
@@ -57,11 +57,25 @@
                 class="ml-2"
                 readonly
               />
-              <tooltip-btn label="수정" icon small color="primary" childClass="ml-2">
-                  <v-icon>mdi-pencil</v-icon>
+              <tooltip-btn
+                label="수정"
+                icon
+                small
+                color="primary"
+                childClass="ml-2"
+                @click="modifyItem(item)"
+              >
+                <v-icon>mdi-pencil</v-icon>
               </tooltip-btn>
-              <tooltip-btn label="삭제" icon small color="error" childClass="ml-2">
-                  <v-icon>mdi-delete</v-icon>
+              <tooltip-btn
+                label="삭제"
+                icon
+                small
+                color="error"
+                childClass="ml-2"
+                @click="removeItem(item)"
+              >
+                <v-icon>mdi-delete</v-icon>
               </tooltip-btn>
             </v-sheet>
           </div>
@@ -79,7 +93,8 @@
 
 <script>
 import draggable from "vuedraggable";
-import TooltipBtn from '../../../components/etc/TooltipBtn.vue';
+import { findParentVm } from "../../../../util/lib";
+import TooltipBtn from "../../../components/etc/TooltipBtn.vue";
 import DisplayLevel from "../../../components/layout/DisplayLevel.vue";
 export default {
   components: { draggable, DisplayLevel, TooltipBtn },
@@ -119,6 +134,14 @@ export default {
     toggleSub(item) {
       item.show = !item.show;
       this.$forceUpdate();
+    },
+    modifyItem(item) {
+      const admMenu = findParentVm(this, "AdmMenu");
+      admMenu.modifyMenu(item, this.items);
+    },
+    removeItem(item) {
+      const idx = this.items.indexOf(item);
+      this.items.splice(idx, 1);
     },
   },
 };

@@ -51,6 +51,7 @@ const store = new Vuex.Store({
 			return data;
 		},
 		async configSave(ctx, form) {
+			console.log("configsave")
 			const { $axios } = Vue.prototype;
 			const data = await $axios.post('/api/config', form);
 			return data;
