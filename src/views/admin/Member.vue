@@ -41,7 +41,7 @@
       </template>
 
       <template v-slot:item.mb_level="{ item }">
-        <display-level :member="item" />
+        <display-level :level="item.mb_level" />
       </template>
 
       <template v-slot:item.mb_create_at="{ item }">
