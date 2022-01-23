@@ -22,6 +22,13 @@ export const getters = {
 	},
 	isSuper(state) {
 		return state.member && state.member.mb_level >= LV.SUPER;
+	},
+	GRANT(state) {
+		console.log("store/modules/user.js/getters/GRANT")
+		if(state.member) {
+			return state.member.mb_level;
+		} 
+		return LV.BLOCK;
 	}
 };
 
