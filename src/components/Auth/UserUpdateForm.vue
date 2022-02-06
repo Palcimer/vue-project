@@ -56,7 +56,7 @@
       <v-slider
         v-model="form.mb_level"
         :min="LV.BLOCK"
-        :max="LV.SUPER"
+        :max="!isGrant ? LV.SUPER : admin.mb_level"
         ticks="always"
         thumb-label
         prepend-icon="mdi-chevron-triple-up"
@@ -105,11 +105,12 @@
       :required="!admMode"
     />
 
-    <v-btn type="submit" block color="primary" :loading="isLoading">
+    <v-btn :disabled="!isGrant" type="submit" block color="primary" :loading="isLoading">
       회원수정
     </v-btn>
 
     <v-btn
+    :disabled="!isGrant"
       v-if="isType == 'member'"
       block
       class="mt-4"
@@ -144,6 +145,7 @@ import InputPost from "../InputForms/InputPost.vue";
 import { deepCopy } from "../../../util/lib";
 import DisplayAvatar from "../layout/DisplayAvatar.vue";
 import { LV, LV_LABEL, LV_COLOR } from "../../../util/level";
+import { mapGetters, mapState } from 'vuex';
 
 export default {
   components: {
@@ -196,6 +198,25 @@ export default {
     lvLabel() {
       return LV_LABEL(this.form.mb_level);
     },
+    ...mapState({
+      admin: state => state.user.member,
+    }),
+    ...mapGetters("user", ["isSuper"]),
+    isGrant() {
+      // 나 자신을 수정할 때
+      if(this.admin.mb_id == this.member.mb_id) {
+        return true;
+      }
+      // 내가 최고관리자일 때
+      if(this.isSuper) {
+        return true;
+      }
+      // 수정 대상이 나보다 레벨이 낮을 때
+      if(this.member.mb_level < this.admin.mb_level) {
+        return true;
+      }
+      return false;
+    }
   },
   created() {
     this.form = deepCopy(this.member);
@@ -209,6 +230,7 @@ export default {
     delete this.form.mb_login_at;
     delete this.form.mb_login_ip;
     delete this.form.mb_leave_at;
+    console.log('isGrant', this.isGrant);
   },
 
   methods: {
