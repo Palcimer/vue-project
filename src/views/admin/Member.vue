@@ -322,6 +322,9 @@ export default {
         console.log(data);
         this.items.splice(idx, 1, data);
         this.$toast.info(`${data.mb_name}님의 정보가 수정되었습니다.`);
+        // 소켓으로 해당 회원에게 수정된 회원정보를 보냄
+        this.$socket.emit("member:admUpdate", data);
+        this.$refs.dialog.close();
       }
     },
     async leaveMember() {

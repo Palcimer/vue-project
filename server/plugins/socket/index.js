@@ -2,7 +2,8 @@ require('dotenv').config();
 const { Server } = require("socket.io");
 const configHandler = require("./configHandler");
 const redisAdapter = require('socket.io-redis');
-const roomHandler = require('./roomHandler')
+const roomHandler = require('./roomHandler');
+const memberHandler = require('./memberHandler');
 
 const { REDIS_HOST, REDIS_PORT } = process.env;
 console.log('redis', REDIS_HOST, REDIS_PORT);
@@ -15,6 +16,7 @@ module.exports = function (webServer) {
   io.on("connection", (socket) => {
     configHandler(io, socket);
     roomHandler(io, socket);
+    memberHandler(io, socket);
 
     console.log("an user connected: " + socket.id);
 
