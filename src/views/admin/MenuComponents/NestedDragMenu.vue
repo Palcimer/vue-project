@@ -39,6 +39,8 @@
                 <v-icon>mdi-chevron-down</v-icon>
               </v-btn>
               <!-- 컨텐츠 내용(메뉴명) -->
+              <v-icon v-if="item.isHide" color="grey">mdi-eye-off</v-icon>
+              <v-icon v-else color="primary">mdi-eye</v-icon>
               <v-text-field
                 label="title"
                 v-model="item.title"
@@ -148,29 +150,4 @@ export default {
 </script>
 
 <style>
-.menu-drag-container .ghost {
-  opacity: 0.4;
-  background: #c8ebfb;
-}
-.menu-drag-container .handle {
-  cursor: grab;
-}
-.menu-drag-container .menu-drag-zone {
-  padding-bottom: 1rem;
-}
-.menu-drag-container .menu-drag-item {
-  position: relative;
-}
-.menu-drag-container .menu-drag-item .icon {
-  display: none;
-}
-.menu-drag-container .menu-drag-subitem {
-  margin-left: 2rem;
-}
-.menu-drag-container .menu-drag-subitem .menu-drag-item .icon {
-  display: block;
-  position: absolute;
-  left: -1.75rem;
-  top: 1.5rem;
-}
 </style>

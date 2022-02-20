@@ -1,10 +1,10 @@
 <template>
   <div>
-	  <!-- 회원정보 출력 -->
-	  <v-card-text class="text-subtitle-2">
-		  <b>{{member.mb_name}}</b>
-		  ({{LV_LABEL(member.mb_level)}})
-		  </v-card-text>
+    <!-- 회원정보 출력 -->
+    <v-card-text class="text-subtitle-2">
+      <b>{{ member.mb_name }}</b>
+      ({{ LV_LABEL(member.mb_level) }})
+    </v-card-text>
     <!-- 관리자 메뉴 -->
     <v-list v-if="isAdmin" dense>
       <v-subheader>관리자 메뉴</v-subheader>
@@ -44,6 +44,11 @@ export default {
         { title: "설정 관리", icon: "mdi-cog", to: "/adm/config" },
         { title: "회원 관리", icon: "mdi-account-cog", to: "/adm/member" },
         { title: "메뉴 관리", icon: "mdi-menu", to: "/adm/menu" },
+        {
+          title: "게시판 관리",
+          icon: "mdi-clipboard-text-multiple-outline",
+          to: "/adm/board/list",
+        },
       ],
     };
   },
@@ -61,11 +66,11 @@ export default {
             }
           } else {
             // 권한변경 메시지 보냄
-			const msg = `${
-                newMember.mb_name
-              }님, 관리자에 의해 등급이 변경되었습니다.\n기존 레벨: ${LV_LABEL(
-                this.member.mb_level
-              )}, 변경 레벨: ${LV_LABEL(newMember.mb_level)}`;
+            const msg = `${
+              newMember.mb_name
+            }님, 관리자에 의해 등급이 변경되었습니다.\n기존 레벨: ${LV_LABEL(
+              this.member.mb_level
+            )}, 변경 레벨: ${LV_LABEL(newMember.mb_level)}`;
             this.$toast.info(msg);
             this.SET_MEMBER(newMember);
           }
@@ -82,7 +87,7 @@ export default {
       member: (state) => state.user.member,
     }),
     ...mapGetters("user", ["isAdmin", "isSuper"]),
-	LV_LABEL: () => LV_LABEL,
+    LV_LABEL: () => LV_LABEL,
   },
   methods: {
     ...mapMutations("user", ["SET_MEMBER"]),
