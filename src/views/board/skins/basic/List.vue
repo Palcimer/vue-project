@@ -1,10 +1,15 @@
 <template>
-  <div>
-    Basic List
-    <v-btn :to="`/board/${table}`">목록</v-btn>
-    <v-btn :to="`/board/${table}?act=write`">쓰기</v-btn>
-    <v-btn :to="`/board/${table}/2`">읽기</v-btn>
-  </div>
+  <v-container>
+    <v-toolbar>
+      <v-toolbar-title>{{ pageTitle }}</v-toolbar-title>
+      <v-spacer />
+      <v-btn :to="`/board/${table}?act=write`" color="primary">
+        <v-icon left>mdi-pencil</v-icon>
+        새 글 작성
+      </v-btn>
+    </v-toolbar>
+  </v-container>
+  <!-- v-data-table -->
 </template>
 
 <script>
@@ -15,9 +20,15 @@ export default {
     access: Object,
     id: [String, Number],
   },
+  title() {
+    return "ezCode " + this.pageTitle;
+  },
   computed: {
     table() {
       return this.config.bo_table;
+    },
+    pageTitle() {
+      return this.config.bo_subject + " 게시판";
     },
   },
 };
