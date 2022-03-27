@@ -134,6 +134,24 @@ const sqlHelper = {
 		query = query.replace('{2}', prepare);
 		return { query, values };
 	},
+	InsertArray(table, data) {
+		let sql;
+		let prepare;
+		for(const i in data) {
+			const datum = data[i];
+			const keys = Object.keys(datum);
+			if(i == 0) {
+				sql = sqlHelper.Insert(table, datum);
+				prepare = new Array(keys.length).fill('?').join(', ');
+			} else {
+				sql.query += `, (${prepare})`;
+				for(const key of keys) {
+					sql.values.push(datum[key]);
+				}
+			}
+		}
+		return sql;
+	},
 	Update(table, data, where) {
 		let query = `UPDATE ${table} SET {1} WHERE {2}`;
 		const keys = Object.keys(data);
@@ -186,7 +204,8 @@ const sqlHelper = {
 		query = query.replace('{2}', prepare);
 		query = query.replace('{3}', sets.join(', '));
 		return { query, values: values.concat(values) };
-	}
+	},
+
 }
 
 module.exports = sqlHelper;

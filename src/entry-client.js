@@ -18,6 +18,7 @@ function addStyle(href) {
 }
 
 addStyle('/css/style.css');
+addStyle('/css/ez-tiptap.min.css');
 
 router.onReady(()=>{
 	app.$mount('#app');

@@ -17,29 +17,29 @@
         :rules="[rules.require({ label: '카테고리' })]"
       >
       </v-select>
-      <!-- <template v-if="!member"> -->
-      <v-text-field
-        label="이름"
-        v-model="form.wr_name"
-        :readonly="!!form.wr_id"
-        :rules="rules.name()"
-      />
-      <v-text-field
-        label="이메일"
-        v-model="form.wr_email"
-        :rules="rules.email()"
-      />
-      <input-password
-        label="비밀번호"
-        v-model="form.wr_password"
-        :rules="rules.password()"
-      />
-      <input-password
-        label="비밀번호 확인"
-        v-model="confirmPw"
-        :rules="[rules.matchValue(form.wr_password)]"
-      />
-      <!-- </template> -->
+      <template v-if="!member">
+        <v-text-field
+          label="이름"
+          v-model="form.wr_name"
+          :readonly="!!form.wr_id"
+          :rules="rules.name()"
+        />
+        <v-text-field
+          label="이메일"
+          v-model="form.wr_email"
+          :rules="rules.email()"
+        />
+        <input-password
+          label="비밀번호"
+          v-model="form.wr_password"
+          :rules="rules.password()"
+        />
+        <input-password
+          label="비밀번호 확인"
+          v-model="confirmPw"
+          :rules="[rules.matchValue(form.wr_password)]"
+        />
+      </template>
       <v-text-field
         label="제목"
         v-model="form.wr_title"
@@ -130,7 +130,7 @@ export default {
   },
   destroyed() {
     // 작성을 완료하지 않았는데 에디터에서 업로드한 이미지가 있다면 삭제함
-    if(this.isWrite == false && this.upImages.length) {
+    if (this.isWrite == false && this.upImages.length) {
       this.$axios.put(`/api/board/imgCancel/${this.table}`, this.upImages);
     }
   },
@@ -203,6 +203,9 @@ export default {
         }
       }
 
+      // 에디터에서 업로드한 이미지
+      formData.append("upImages", JSON.stringify(this.upImages));
+
       let wr_id;
       if (this.id) {
         // 수정
@@ -212,13 +215,21 @@ export default {
         wr_id = await this.insert(formData);
       }
 
-      if(wr_id) {
+      if (wr_id) {
         this.isWrite = true;
+        this.$router.push(`/board/${this.table}/${wr_id}`);
       }
 
       this.loading = false;
     },
-    async insert(formData) {},
+    async insert(formData) {
+      const data = await this.$axios.post(
+        `api/board/write/${this.table}`,
+        formData
+      );
+      return data.wr_id;
+    },
+    async update(formData) {},
   },
 };
 </script>
