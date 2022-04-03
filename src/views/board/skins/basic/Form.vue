@@ -15,6 +15,7 @@
         v-model="form.wr_category"
         :items="config.bo_category"
         :rules="[rules.require({ label: '카테고리' })]"
+        :readonly="!!parentItem"
       >
       </v-select>
       <template v-if="!member">
@@ -40,6 +41,18 @@
           :rules="[rules.matchValue(form.wr_password)]"
         />
       </template>
+
+      <v-expansion-panels v-if="parentItem"> 
+        <v-expansion-panel>
+          <v-expansion-panel-header>
+            부모글: {{parentItem.wr_title}}
+          </v-expansion-panel-header>
+          <v-expansion-panel-content>
+            <ez-tiptap v-model="parentItem.wr_content" :editable="false"/>
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+      </v-expansion-panels>
+
       <v-text-field
         label="제목"
         v-model="form.wr_title"
@@ -77,7 +90,19 @@
           :label="fileTitle(i)"
           v-model="uploadFiles[i - 1]"
           show-size
+          :disabled="
+            form.wrFiles && form.wrFiles[i - 1]
+              ? !form.wrFiles[i - 1].remove
+              : false
+          "
         />
+        <div v-if="form.wrFiles && form.wrFiles[i - 1]">
+          <v-checkbox
+            v-model="form.wrFiles[i - 1].remove"
+            label="삭제"
+            @change="uploadFiles[i - 1] = null"
+          />
+        </div>
       </div>
     </v-form>
   </v-container>
@@ -109,6 +134,7 @@ export default {
       loading: false,
       upImages: [],
       isWrite: false,
+      parentItem: null,
     };
   },
   computed: {
@@ -124,6 +150,12 @@ export default {
       );
     },
     rules: () => validateRules,
+    pid() {
+      if (this.$route.query.act == "reply") {
+        return this.id;
+      }
+      return 0;
+    },
   },
   mounted() {
     this.init();
@@ -136,24 +168,39 @@ export default {
   },
   methods: {
     async init() {
-      if (this.id) {
-      } else {
+      if (this.id) { // 기존글에 대한 액션
+        const data = await this.$axios.get(
+          `/api/board/read/${this.table}/${this.id}`
+        );        
+        if (this.pid) {
+          // 부모가 있음(답글)
+          this.initForm();
+          this.form.wr_category = data.wr_category; // 답글의 카테고리는 부모글의 카테고리를 따라감
+          this.parentItem = data;
+        } else {
+          // 부모가 없음(수정)
+          this.form = data;
+        }
+      } else { // 새 글
         this.initForm();
       }
-      console.log(this.config);
+      console.log("this.config", this.config);
+      console.log("this.form", this.form);
     },
     initForm() {
       const form = {
         wr_reply: 0,
-        wr_parent: 0, // 답글 작성일 경우에는 부모 아이디를 가져와야 함
+        wr_parent: this.pid, // 답글 작성일 경우에는 부모 아이디를 가져와야 함
         mb_id: this.member ? this.member.mb_id : 0, // 0=비회원 글 작성
         wr_email: this.member ? this.member.mb_email : "",
         wr_name: this.member ? this.member.mb_name : "",
         wr_password: "",
-        wr_category: this.$route.query.ca || this.config.bo_category[0], // 나중에 링크할 때 카테고리 정보를 넘긴다 ???
+        wr_category: this.$route.query.ca || this.config.bo_category[0], // TODO: 링크할 때 카테고리 정보를 넘긴다 ???
         wr_title: "",
         wr_content: "",
         wrTags: [],
+        // wrImgs: [],
+        // wrFiles: [],
       };
       for (let i = 1; i <= 10; i++) {
         form[`wr_${i}`] = "";
@@ -173,7 +220,14 @@ export default {
     },
     fileTitle(i) {
       // TODO: 수정 시 업로드한 파일 이름을 사용하기 위함
-      return `첨부파일 ${i}`;
+      if (this.form.wrFiles) {
+        const wrFile = this.form.wrFiles[i - 1];
+        if (wrFile && !wrFile.remove) {
+          return wrFile.bf_name;
+        } else {
+          return `첨부파일 ${i}`;
+        }
+      }
     },
     async save() {
       this.$refs.form.validate();
@@ -207,7 +261,7 @@ export default {
       formData.append("upImages", JSON.stringify(this.upImages));
 
       let wr_id;
-      if (this.id) {
+      if (this.id && !this.pid) {
         // 수정
         wr_id = await this.update(formData);
       } else {
@@ -229,7 +283,13 @@ export default {
       );
       return data.wr_id;
     },
-    async update(formData) {},
+    async update(formData) {
+      const data = await this.$axios.put(
+        `/api/board/write/${this.table}/${this.id}`,
+        formData
+      );
+      return data.wr_id;
+    },
   },
 };
 </script>

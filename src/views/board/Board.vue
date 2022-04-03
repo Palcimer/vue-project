@@ -59,6 +59,8 @@ export default {
           return `${prefix}List`;
         } else if (this.access.write && this.action == "write") {
           return `${prefix}Form`;
+        } else if (this.access.reply && this.action == "reply") {
+          return `${prefix}Form`;
         } else if (this.wr_id && this.access.read && this.action == "read") {
           return `${prefix}Read`;
         } else {

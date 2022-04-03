@@ -22,6 +22,7 @@
           plain
           class="justify-start"
         >
+        <v-icon v-if="item.wr_dep > 0" :style="{'padding-left': `${(item.wr_dep - 1) * 16}px`}">mdi-subdirectory-arrow-right</v-icon>
           <div>{{ item.wr_title }}</div>
         </v-btn>
       </template>
@@ -74,6 +75,18 @@ export default {
           align: "start",
           sortable: false,
           searchable: false,
+        },
+                {
+          text: "GRP",
+          value: "wr_grp",
+        },
+        {
+          text: "ORD",
+          value: "wr_order",
+        },
+        {
+          text: "DEP",
+          value: "wr_dep",
         },
         {
           text: "제목",
