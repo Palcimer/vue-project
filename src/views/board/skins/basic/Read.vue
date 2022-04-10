@@ -8,7 +8,14 @@
       </v-toolbar>
     </v-card-title>
     <v-card-text>
-      <ez-tiptap :editable="false" v-model="item.wr_content" />
+      <ssr-renderer>
+        <template>
+          <ez-tiptap :editable="false" v-model="item.wr_content" />
+        </template>
+        <template v-slot:server>
+          <div v-html="item.wr_content"></div>
+        </template>
+      </ssr-renderer>
     </v-card-text>
     <v-card-actions>
       <v-btn
@@ -38,8 +45,10 @@
 
 <script>
 import { LV } from "../../../../../util/level";
-import { mapGetters, mapState } from "vuex";
+import { mapActions, mapGetters, mapMutations, mapState } from "vuex";
+import SsrRenderer from "../../../../components/util/SsrRenderer.vue";
 export default {
+  components: { SsrRenderer },
   name: "BasicView",
   props: {
     config: Object,
@@ -48,12 +57,13 @@ export default {
   },
   data() {
     return {
-      item: null,
+      // item: null,
     };
   },
   computed: {
     ...mapState({
       member: (state) => state.user.member,
+      item: (state) => state.board.read,
     }),
     ...mapGetters("user", ["GRANT"]),
     table() {
@@ -72,19 +82,34 @@ export default {
       return "";
     },
   },
+  watch: {
+    id() {
+      this.fetchData();
+    },
+  },
+  serverPrefetch() {
+    return this.fetchData();
+  },
   mounted() {
-    this.fetchData();
+    if (!this.item) {
+      this.fetchData();
+    }
   },
   methods: {
+    ...mapActions("board", ["getBoardRead"]),
     async fetchData() {
       console.log(this.id);
-      const data = await this.$axios.get(
-        `/api/board/read/${this.table}/${this.id}`
-      );
-      this.setData(data);
-    },
-    setData(data) {
-      this.item = data;
+
+      const headers = {};
+      if (this.$ssrContext) {
+        headers.token = this.$ssrContext.token;
+      }
+
+      await this.getBoardRead({
+        table: this.table,
+        id: this.id,
+        headers,
+      });
     },
   },
 };

@@ -141,10 +141,13 @@ export default {
       const options = {
         ...this.options,
         page: 1,
-        stf: [this.form.stf],
-        stc: [this.form.stc],
-        stx: [this.form.stx],
+        // stf: [this.form.stf],
+        // stc: [this.form.stc],
+        // stx: [this.form.stx],
       };
+      options.stf.splice(0, 1, this.form.srf);
+      options.stc.splice(0, 1, this.form.stc);
+      options.stx.splice(0, 1, this.form.stx);
       this.$emit("update:options", options);
       this.$refs.dialog.close();
     },
@@ -152,10 +155,13 @@ export default {
       const options = {
         ...this.options,
         page: 1,
-        stf: [""],
-        stc: [""],
-        stx: [""],
+        // stf: [""],
+        // stc: [""],
+        // stx: [""],
       };
+      options.stf.splice(0, 1, "");
+      options.stc.splice(0, 1, "");
+      options.stx.splice(0, 1, "");
       this.$emit("update:options", options);
       this.$refs.dialog.close();
     },

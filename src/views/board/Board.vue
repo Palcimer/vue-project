@@ -4,21 +4,22 @@
 
 <script>
 import upperFirst from "lodash/upperFirst";
-import { mapGetters, mapMutations, mapState } from "vuex";
+import { mapActions, mapGetters, mapState } from "vuex";
 import SKINS from "./skins";
 import BoardError from "./BoardError.vue";
 
 export default {
   components: { ...SKINS, BoardError },
   name: "Board",
+
   data() {
     return {
-      config: null,
+      // config: null,
     };
   },
   computed: {
     ...mapState({
-      initData: (state) => state.initData,
+      config: (state) => state.board.config,
     }),
     ...mapGetters({
       GRANT: "user/GRANT",
@@ -72,41 +73,23 @@ export default {
   },
   watch: {
     table() {
-      this.config = null;
-      this.fetchConfig();
+      // this.config = null;
+      // this.fetchConfig();
     },
+  },
+  serverPrefetch() {
+    return this.getBoardConfig(this.table);
   },
   mounted() {
     // console.log('src/views/board/Board.vue mounted ', this.$route);
     // console.log('src/views/board/Board.vue mounted ', this.pathMatch, this.table, this.wr_id, this.action);
     // this.fetchConfig();
-    console.log("src/views/board/Board.vue initData", this.initData);
-  },
-  syncData() {
-    if (this.initData && this.initData.config) {
-      return this.setConfig(this.initData.config);
-    } else {
-      return this.fetchConfig();
+    if (!this.config) {
+      this.getBoardConfig(this.table);
     }
   },
   methods: {
-    ...mapMutations(["SET_INITDATA"]),
-    async fetchConfig() {
-      const data = await this.$axios.get(`/api/board/config/${this.table}`);
-      console.log('data====', data);
-      console.log('ssrContext====', this.$ssrContext);
-      if (this.$ssrContext) {
-        console.log("src/views/board/Board.vue SET_INITDATA", data.bo_table);
-        this.SET_INITDATA({ config: data });
-      }
-      this.setConfig(data);
-    },
-    setConfig(data) {
-      if (data) {
-        this.config = data;
-      }
-      console.log(this.config);
-    },
+    ...mapActions("board", ["getBoardConfig"]),
   },
 };
 </script>
