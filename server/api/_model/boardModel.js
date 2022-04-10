@@ -105,7 +105,7 @@ const boardModel = {
             const uSql = `UPDATE ${table} SET wr_order=wr_order+1 WHERE wr_reply=${data.wr_reply}
             AND wr_grp=${parent.wr_grp} AND wr_order >= ${data.wr_order}`;
             await db.execute(uSql);
-            
+
 
         }
 
@@ -167,8 +167,16 @@ const boardModel = {
     async getList(bo_table, config, options, member) {
         console.log("getList");
         const table = `${TABLE.VIEW}${bo_table}`;
+
+        options.sortBy = [];
+        options.sortDesc = [];
+        for (const sort of config.bo_sort) {
+            options.sortBy.push(sort.by);
+            options.sortDesc.push(sort.desc == 1);
+        }
+        
         const sql = sqlHelper.SelectLimit(table, options);
-        console.log("getList sql", sql);
+        // console.log("getList sql", sql);
         const [[{ totalItems }]] = await db.execute(sql.countQuery, sql.values);
         const [items] = await db.execute(sql.query, sql.values);
         return { items, totalItems };

@@ -119,8 +119,20 @@ module.exports = (app) => {
 		}
 	));
 
+	function getSsrToken(cookie) {
+		const cookies = cookie.split(";");
+		for(const str of cookies) {
+			const c = str.split("=");
+			if(c[0] == 'token') {
+				return c[1];
+			}
+		}
+		return false;
+	}
+
 	app.use(async (req, res, next) => {
-		const token = req.cookies.token;
+		const token = req.cookies.token || req.headers.token;
+		// const ssrToken = getSsrToken(req.headers.cookie);
 		if (!token) return next();
 		const { mb_id } = jwt.verify(token);
 		if (!mb_id) return next();
