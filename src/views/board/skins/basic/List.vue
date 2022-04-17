@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <v-toolbar>
       <v-toolbar-title>{{ pageTitle }}</v-toolbar-title>
       <v-sheet v-if="config.bo_use_category == 1" width="150" class="ml-4">
@@ -18,21 +18,55 @@
       :options.sync="options"
       :server-items-length="totalItems"
       :loading="loading"
+      class="fixedTable"
     >
+      <template v-slot:item.no="{ item, index }">
+        {{ getNo(index) }}
+      </template>
+
       <template v-slot:item.wr_title="{ item }">
         <v-btn
           :to="`/board/${table}/${item.wr_id}`"
           block
           plain
-          class="justify-start"
+          class="text-none px-0 justify-start basic-title"
         >
-          <v-icon
-            v-if="item.wr_dep > 0"
-            :style="{ 'padding-left': `${(item.wr_dep - 1) * 16}px` }"
-            >mdi-subdirectory-arrow-right</v-icon
-          >
-          <div>{{ item.wr_title }}</div>
+          <div class="d-flex justify-start align-center">
+            <v-icon
+              v-if="item.wr_dep > 0"
+              :style="{ 'padding-left': `${(item.wr_dep - 1) * 16}px` }"
+              >mdi-subdirectory-arrow-right</v-icon
+            >
+            <div
+              class="text-truncate"
+              :style="{
+                'max-width': `calc(100% - 20px - ${
+                  item.wr_dep > 0 ? (item.wr_dep - 1) * 16 + 24 : 0
+                }px)`,
+              }"
+            >
+              {{ item.wr_title }}
+            </div>
+            <v-tooltip top>
+              <template v-slot:activator="{ on, attrs }">
+                <v-chip
+                  v-on="on"
+                  v-bind="attrs"
+                  x-small
+                  label
+                  color="green"
+                  class="px-1 ml-1"
+                >
+                  {{ item.replies }}
+                </v-chip>
+              </template>
+              <span>댓글: {{ item.replies }}개</span>
+            </v-tooltip>
+          </div>
         </v-btn>
+      </template>
+      <template #item.wr_create_at="{ item }">
+        <display-time :time="item.wr_create_at" />
       </template>
     </v-data-table>
   </v-container>
@@ -45,8 +79,10 @@ import { deepCopy } from "../../../../../util/lib";
 import { mapActions, mapState } from "vuex";
 import SearchField from "../../../../components/layout/SearchField.vue";
 import CateSelect from "./component/CateSelect.vue";
+import DisplayTime from "./component/DisplayTime.vue";
+
 export default {
-  components: { SearchField, CateSelect },
+  components: { SearchField, CateSelect, DisplayTime },
   name: "BasicList",
   props: {
     config: Object,
@@ -80,28 +116,30 @@ export default {
         {
           text: "No",
           value: "no",
-          align: "start",
+          align: "center",
           sortable: false,
           searchable: false,
+          width: "20",
         },
-        {
-          text: "GRP",
-          value: "wr_grp",
-        },
-        {
-          text: "ORD",
-          value: "wr_order",
-        },
-        {
-          text: "DEP",
-          value: "wr_dep",
-        },
+        // {
+        //   text: "GRP",
+        //   value: "wr_grp",
+        // },
+        // {
+        //   text: "ORD",
+        //   value: "wr_order",
+        // },
+        // {
+        //   text: "DEP",
+        //   value: "wr_dep",
+        // },
         {
           text: "제목",
           value: "wr_title",
           align: "start",
           sortable: false,
           searchable: true,
+          cellClass: "text-truncate",
         },
         {
           text: "작성자",
@@ -109,6 +147,7 @@ export default {
           align: "center",
           sortable: false,
           searchable: true,
+          width: "100",
         },
         {
           text: "작성일",
@@ -116,6 +155,7 @@ export default {
           align: "center",
           sortable: false,
           searchable: false,
+          width: "143",
         },
         {
           text: "조회수",
@@ -123,6 +163,7 @@ export default {
           align: "center",
           sortable: false,
           searchable: false,
+          width: "80",
         },
       ];
       if (this.config.bo_use_category) {
@@ -132,6 +173,7 @@ export default {
           align: "center",
           sortable: false,
           searchable: false,
+          width: "100",
         });
       }
       return headers;
@@ -205,6 +247,11 @@ export default {
       this.pageRouting = true;
       this.options = this.initOptions();
     },
+    getNo(index) {
+      const { page, itemsPerPage } = this.options;
+      const { totalItems } = this;
+      return totalItems - (page - 1) * itemsPerPage - index;
+    },
     getPayload() {
       const payload = deepCopy(this.options);
       console.log("payload====", payload);
@@ -236,4 +283,33 @@ export default {
 </script>
 
 <style>
+@media screen and (min-width: 600px) {
+  .fixedTable table {
+    table-layout: fixed;
+  }
+}
+
+.basic-title {
+  width: 100%;
+}
+.basic-title > span {
+  display: block;
+  width: 100%;
+}
+
+@media screen and (max-width: 600px) {
+  .fixedTable > div { overflow: hidden; }
+  .fixedTable .v-data-table__mobile-table-row {
+    max-width: calc(100vw - 42px);
+  }
+  .fixedTable .v-data-table__mobile-row__header {
+    width: 80px;
+  }
+  .fixedTable .v-data-table__mobile-row__cell .basic-title > span > div {
+    display: block;
+    max-width: calc(100vw - 122px);
+  }
+}
+
+
 </style>
