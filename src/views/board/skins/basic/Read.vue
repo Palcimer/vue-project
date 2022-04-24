@@ -31,7 +31,15 @@
         <tag-view :tags="item.wrTags" />
       </v-card-text>
 
-      <!-- TODO: 좋아요 -->
+      <v-card-text>
+        <display-like
+          :table="table"
+          :item="item"
+          class="d-flex justify-center"
+          :btnProps="{ tile: true, small: true }"
+          :icon="{ like: 'mdi-thumb-up', bad: 'mdi-thumb-down' }"
+        />
+      </v-card-text>
 
       <v-card-text>
         <file-download :table="table" :item="item" :access="access" />
@@ -58,6 +66,7 @@
             label="삭제"
             icon="mdi-delete"
             @click="deleteItem"
+            :loading="deleteLoading"
           />
           <!-- TODO: 비회원 게시물 삭제 버튼 -->
           <!-- 삭제 끝 -->
@@ -73,7 +82,7 @@
         </v-col>
 
         <v-col cols="4" class="text-right text-no-wrap">
-                    <board-button
+          <board-button
             v-if="access.reply"
             color="secondary"
             :to="`/board/${table}/${item.wr_id}?act=reply`"
@@ -84,7 +93,7 @@
             v-if="access.write"
             color="primary"
             class="ml-2"
-            :to="`/board/${table}/write`"
+            :to="`/board/${table}?act=write`"
             label="새 글 쓰기"
             icon="mdi-pencil"
           />
@@ -108,8 +117,16 @@ import DisplayTime from "./component/DisplayTime.vue";
 import TagView from "./component/TagView.vue";
 import FileDownload from "./component/FileDownload.vue";
 import BoardButton from "./component/BoardButton.vue";
+import DisplayLike from "./component/DisplayLike.vue";
 export default {
-  components: { SsrRenderer, DisplayTime, FileDownload, TagView, BoardButton },
+  components: {
+    SsrRenderer,
+    DisplayTime,
+    FileDownload,
+    TagView,
+    BoardButton,
+    DisplayLike,
+  },
   name: "BasicView",
   props: {
     config: Object,
@@ -118,7 +135,7 @@ export default {
   },
   data() {
     return {
-      // item: null,
+      deleteLoading: false,
     };
   },
   computed: {
@@ -176,16 +193,22 @@ export default {
         headers,
       });
     },
-    async deleteItem() {
-      if (
-        await this.$ezNotify.confirm(
-          "게시글을 삭제하시겠습니까?",
-          "삭제 확인",
-          { icon: " mdi-alert" }
-        )
-      ) {
-        console.log("게시물 삭제");
+    async deleteItem(token) {
+      this.deleteLoading = true;
+
+      const deleteConfirm = await this.$ezNotify.confirm(
+        "게시글을 삭제하시겠습니까?",
+        "삭제 확인",
+        { icon: " mdi-alert" }
+      );
+
+      if (deleteConfirm) {
+        const data = await this.$axios.delete(
+          `/api/board/${this.table}/${this.item.wr_id}?token=${token}`
+        );
       }
+
+      this.deleteLoading = false;
     },
   },
 };

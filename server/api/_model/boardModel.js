@@ -6,6 +6,7 @@ const TABLE = require('../../../util/TABLE');
 const sqlHelper = require('../../../util/sqlHelper');
 const jwt = require('../../plugins/jwt');
 const tagModel = require('./tagModel');
+const likeModel = require('./likeModel');
 const { getSummary } = require('../../../util/lib');
 
 const boardModel = {
@@ -199,6 +200,11 @@ const boardModel = {
         item.wrTags = await tagModel.getTags(bo_table, wr_id);
 
         // TODO: 좋아요
+        if(member) {
+            item.likeFlag = await likeModel.getFlag(bo_table, wr_id, member.mb_id);
+        } else {
+            item.likeFlag = 0;
+        }
 
         delete item.wr_password;
         return item;
@@ -259,7 +265,7 @@ const boardModel = {
         delete data.good; // 좋아요 삭제
         delete data.bad;
         delete data.replies;
-        delete data.goodFlag;
+        delete data.likeFlag;
 
         // 태그 삭제 후 등록
         const wrTags = JSON.parse(data.wrTags);
