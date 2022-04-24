@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { isGrant, LV } = require('../../util/level');
 const { modelCall, getIp } = require('../../util/lib');
 const boardModel = require('./_model/boardModel');
+const fs = require('fs');
 
 async function isModify(config, member, wrItem) {
     let msg = "수정권한이 없습니다.";
@@ -99,6 +100,25 @@ router.get('/read/:bo_table/:wr_id', async (req, res) => {
     }
     const result = await modelCall(boardModel.getItem, bo_table, wr_id, req.user);
     res.json(result);
+});
+
+router.get('/download/:bo_table/:filename', async (req, res) => {
+    console.log(req);
+    const {bo_table, filename} = req.params;
+    const config = await modelCall(boardModel.getConfig, bo_table);
+    const grant = isGrant(req, config.bo_download_level);
+    if (!grant) {
+        return res.status(403).end('No Permission');
+    }
+    const {src} = req.query;
+
+    const srcFile = `${UPLOAD_PATH}/${bo_table}/${src}`;
+    console.log(srcFile);
+    if(!fs.existsSync(srcFile)) {
+        
+        return res.status(404).end('File Not Found');
+    }
+    res.download(srcFile, filename);
 });
 
 module.exports = router;

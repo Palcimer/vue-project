@@ -17,6 +17,7 @@ const thumbnail = function (uploadPath) {
 			return res.status(400).json({ err: 'file not found' });
 		}
 
+		try {
 		const dim = imageSize(srcFile);
 		// console.log(dim)
 		// gif 일때
@@ -54,6 +55,9 @@ const thumbnail = function (uploadPath) {
 		// console.log('destFile', destFile);
 		await sharp(srcFile).resize(w || null, h || null).toFile(destFile);
 		return res.end(fs.readFileSync(destFile));
+	} catch(e) {
+		return res.end(fs.readFileSync(srcFile));
+	}
 	}
 }
 

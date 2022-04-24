@@ -37,7 +37,13 @@ const lib = {
 			text = text.substr(0, len - 3) + '...';
 		}
 		return text;
-	}
+	},
+	fileSize(fileSizeInBytes) {
+		const s = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
+		const e = Math.floor(Math.log(fileSizeInBytes) / Math.log(1024));
+		return (fileSizeInBytes / Math.pow(1024, e)).toFixed(2) + " " + s[e];
+
+	},
 }
 
 module.exports = lib;

@@ -5,6 +5,14 @@
         <v-toolbar flat>
           <v-toolbar-title>{{ item.wr_title }}</v-toolbar-title>
           <v-spacer />
+          <v-subheader class="text-no-wrap">
+            <v-icon class="mx-2" small>mdi-account</v-icon>
+            {{ item.wr_name }}
+            <v-icon class="mx-2" small>mdi-clock-outline</v-icon>
+            <i><display-time :time="item.wr_create_at" /></i>
+            <v-icon class="mx-2" small>mdi-eye</v-icon>
+            {{ item.wr_view }}
+          </v-subheader>
           <v-btn :to="`/board/${table}`">목록</v-btn>
         </v-toolbar>
       </v-card-title>
@@ -18,22 +26,69 @@
           </template>
         </ssr-renderer>
       </v-card-text>
+
+      <v-card-text>
+        <tag-view :tags="item.wrTags" />
+      </v-card-text>
+
+      <!-- TODO: 좋아요 -->
+
+      <v-card-text>
+        <file-download :table="table" :item="item" :access="access" />
+      </v-card-text>
+
       <v-card-actions>
-        <v-btn
-          v-if="isModifiable == 'MODIFY'"
-          color="info"
-          :to="`/board/${table}/${item.wr_id}?act=write`"
-        >
-          <v-icon>mdi-pencil</v-icon>
-        </v-btn>
-        <v-btn
-          v-if="access.reply"
-          color="secondary"
-          :to="`/board/${table}/${item.wr_id}?act=reply`"
-        >
-          <v-icon>mdi-subdirectory-arrow-right</v-icon>
-          답글쓰기
-        </v-btn>
+        <v-col cols="4" class="text-no-wrap">
+          <!-- 수정 -->
+          <board-button
+            v-if="isModifiable == 'MODIFY'"
+            :to="`/board/${table}/${item.wr_id}?act=write`"
+            color="info"
+            label="수정"
+            icon="mdi-pencil"
+          />
+          <!-- TODO: 비회원 게시물 수정 버튼 -->
+          <!-- 수정 끝 -->
+
+          <!-- 삭제 -->
+          <board-button
+            v-if="isModifiable == 'MODIFY'"
+            color="error"
+            class="ml-2"
+            label="삭제"
+            icon="mdi-delete"
+            @click="deleteItem"
+          />
+          <!-- TODO: 비회원 게시물 삭제 버튼 -->
+          <!-- 삭제 끝 -->
+        </v-col>
+
+        <v-col cols="4" class="text-center text-no-wrap">
+          <board-button
+            :to="`/board/${table}`"
+            color="accent"
+            label="목록"
+            icon="mdi-menu"
+          />
+        </v-col>
+
+        <v-col cols="4" class="text-right text-no-wrap">
+                    <board-button
+            v-if="access.reply"
+            color="secondary"
+            :to="`/board/${table}/${item.wr_id}?act=reply`"
+            label="답글 쓰기"
+            icon="mdi-subdirectory-arrow-right"
+          />
+          <board-button
+            v-if="access.write"
+            color="primary"
+            class="ml-2"
+            :to="`/board/${table}/write`"
+            label="새 글 쓰기"
+            icon="mdi-pencil"
+          />
+        </v-col>
       </v-card-actions>
     </v-card>
     <!-- <div>
@@ -49,8 +104,12 @@
 import { LV } from "../../../../../util/level";
 import { mapActions, mapGetters, mapMutations, mapState } from "vuex";
 import SsrRenderer from "../../../../components/util/SsrRenderer.vue";
+import DisplayTime from "./component/DisplayTime.vue";
+import TagView from "./component/TagView.vue";
+import FileDownload from "./component/FileDownload.vue";
+import BoardButton from "./component/BoardButton.vue";
 export default {
-  components: { SsrRenderer },
+  components: { SsrRenderer, DisplayTime, FileDownload, TagView, BoardButton },
   name: "BasicView",
   props: {
     config: Object,
@@ -116,6 +175,17 @@ export default {
         id: this.id,
         headers,
       });
+    },
+    async deleteItem() {
+      if (
+        await this.$ezNotify.confirm(
+          "게시글을 삭제하시겠습니까?",
+          "삭제 확인",
+          { icon: " mdi-alert" }
+        )
+      ) {
+        console.log("게시물 삭제");
+      }
     },
   },
 };
