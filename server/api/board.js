@@ -2,18 +2,25 @@ const router = require('express').Router();
 const { isGrant, LV } = require('../../util/level');
 const { modelCall, getIp } = require('../../util/lib');
 const boardModel = require('./_model/boardModel');
+const jwt = require('../plugins/jwt');
 const fs = require('fs');
 
-async function isModify(config, member, wrItem) {
+async function isModify(req, config, member, wrItem) {
+    console.log("token===========", wrItem.token, req.session.checkToken);
     let msg = "수정권한이 없습니다.";
-    if(member) {
-        if(member.mb_level >= LV.SUPER || member.mb_id == wrItem.mb_id) {
+    if (member) {
+        if (member.mb_level >= LV.SUPER || member.mb_id == wrItem.mb_id) {
             msg = '';
         }
-    } else { // 비회원
+    } else { // 비회원 수정
         // 세션에 비밀번호 정보 
-        // TODO: 비밀번호 일치 여부
+        // 비밀번호 일치 검사
+        if (typeof(wrItem.token) === 'string' && wrItem.token == req.session.checkToken) {
+            msg = '';
+        }
     }
+    delete wrItem.token;
+    req.session.checkToken = '';
     return msg;
 }
 
@@ -61,15 +68,15 @@ router.post('/write/:bo_table', async (req, res) => {
 });
 
 // 게시물 수정
-router.put('/write/:bo_table/:wr_id', async(req, res) => {
+router.put('/write/:bo_table/:wr_id', async (req, res) => {
     const data = req.body;
-    const {bo_table, wr_id} = req.params;
+    const { bo_table, wr_id } = req.params;
     data.wr_ip = getIp(req);
     // 권한확인
     const config = await modelCall(boardModel.getConfig, bo_table);
-    const modifyMsg = await isModify(config, req.user, data);
-    
-    if(modifyMsg) return res.json({err: modifyMsg});
+    const modifyMsg = await isModify(req, config, req.user, data);
+
+    if (modifyMsg) return res.json({ err: modifyMsg });
 
     const result = await modelCall(boardModel.writeUpdate, bo_table, wr_id, data, req.files);
     res.json(result);
@@ -104,21 +111,40 @@ router.get('/read/:bo_table/:wr_id', async (req, res) => {
 
 router.get('/download/:bo_table/:filename', async (req, res) => {
     console.log(req);
-    const {bo_table, filename} = req.params;
+    const { bo_table, filename } = req.params;
     const config = await modelCall(boardModel.getConfig, bo_table);
     const grant = isGrant(req, config.bo_download_level);
     if (!grant) {
         return res.status(403).end('No Permission');
     }
-    const {src} = req.query;
+    const { src } = req.query;
 
     const srcFile = `${UPLOAD_PATH}/${bo_table}/${src}`;
     console.log(srcFile);
-    if(!fs.existsSync(srcFile)) {
-        
+    if (!fs.existsSync(srcFile)) {
+
         return res.status(404).end('File Not Found');
     }
     res.download(srcFile, filename);
 });
+
+router.delete('/:bo_table/:wr_id', async (req, res) => {
+    const { bo_table, wr_id } = req.params;
+    const { token } = req.query;
+    res.json({ bo_table, wr_id, token });
+});
+
+router.post('/check/:bo_table/:wr_id', async (req, res) => {
+    const { bo_table, wr_id } = req.params;
+    const { password } = req.body;
+    const cnt = await modelCall(boardModel.checkItem, bo_table, wr_id, password);
+    if (cnt == 1) {
+        const token = jwt.getRandToken(16);
+        req.session.checkToken = token; // 세션에 토큰을 저장해줌?
+        res.json({ token });
+    } else {
+        res.json({ err: '비밀번호가 일치하지 않습니다.' });
+    }
+})
 
 module.exports = router;

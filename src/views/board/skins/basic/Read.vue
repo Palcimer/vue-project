@@ -47,7 +47,7 @@
 
       <v-card-actions>
         <v-col cols="4" class="text-no-wrap">
-          <!-- 수정 -->
+          <!-- 수정 버튼 -->
           <board-button
             v-if="isModifiable == 'MODIFY'"
             :to="`/board/${table}/${item.wr_id}?act=write`"
@@ -55,7 +55,18 @@
             label="수정"
             icon="mdi-pencil"
           />
-          <!-- TODO: 비회원 게시물 수정 버튼 -->
+          <!-- 비회원 게시물 수정 버튼 -->
+          <modify-button
+            v-if="isModifiable == 'NO_MEMBER'"
+            color="info"
+            :table="table"
+            :wr_id="item.wr_id"
+            label="수정"
+            @onValid = "modifyItem"
+          >
+            <v-icon left>mdi-pencil</v-icon>수정
+          </modify-button>
+
           <!-- 수정 끝 -->
 
           <!-- 삭제 -->
@@ -118,6 +129,7 @@ import TagView from "./component/TagView.vue";
 import FileDownload from "./component/FileDownload.vue";
 import BoardButton from "./component/BoardButton.vue";
 import DisplayLike from "./component/DisplayLike.vue";
+import ModifyButton from "./component/modifyButton.vue";
 export default {
   components: {
     SsrRenderer,
@@ -126,6 +138,7 @@ export default {
     TagView,
     BoardButton,
     DisplayLike,
+    ModifyButton,
   },
   name: "BasicView",
   props: {
@@ -209,6 +222,9 @@ export default {
       }
 
       this.deleteLoading = false;
+    },
+    modifyItem(token) {
+      this.$router.push(`/board/${this.table}/${this.item.wr_id}/?act=write&token=${token}`);
     },
   },
 };

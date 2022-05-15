@@ -33,7 +33,7 @@
         <input-password
           label="비밀번호"
           v-model="form.wr_password"
-          :rules="rules.password()"
+          :rules="rules.password({required: !id})"
         />
         <input-password
           label="비밀번호 확인"
@@ -181,6 +181,7 @@ export default {
           // 부모가 없음(수정)
           this.form = data;
         }
+        this.form.wr_password = "";
       } else { // 새 글
         this.initForm();
       }
@@ -247,6 +248,10 @@ export default {
         } else {
           formData.append(key, this.form[key]);
         }
+      }
+      // 작성 시 토큰(비회원 게시글 작업용)이 있다면 토큰을 삽입
+      if(this.$route.query.token) {
+        formData.append('token', this.$route.query.token);
       }
       // 파일 업로드 처리
       let cnt = 0;
