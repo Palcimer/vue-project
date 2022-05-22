@@ -110,6 +110,7 @@
           />
         </v-col>
       </v-card-actions>
+      <comment-list :id="item.wr_id" :table="table" :access="access"/>
     </v-card>
     <!-- <div>
     Basic View
@@ -130,6 +131,7 @@ import FileDownload from "./component/FileDownload.vue";
 import BoardButton from "./component/BoardButton.vue";
 import DisplayLike from "./component/DisplayLike.vue";
 import ModifyButton from "./component/modifyButton.vue";
+import CommentList from './component/CommentList.vue';
 export default {
   components: {
     SsrRenderer,
@@ -139,6 +141,7 @@ export default {
     BoardButton,
     DisplayLike,
     ModifyButton,
+    CommentList,
   },
   name: "BasicView",
   props: {

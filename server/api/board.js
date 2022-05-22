@@ -58,13 +58,32 @@ router.post('/write/:bo_table', async (req, res) => {
 
     // 권한 검사
     const config = await modelCall(boardModel.getConfig, bo_table);
-    const grant = isGrant(req, config.bo_write_level);
-    if (!grant) {
-        return res.json({ err: '게시물 작성 권한이 없습니다.' });
+    
+    if(data.wr_reply == 0) { // wr_reply = 0: 게시물
+        const grant = isGrant(req, config.bo_write_level);
+        if (!grant) {
+            return res.json({ err: '게시물 작성 권한이 없습니다.' });
+        }
+    } else { // wr_reply > 0: 댓글
+        const grant = isGrant(req, config.bo_comment_level);
+        if (!grant) {
+            return res.json({ err: '댓글 작성 권한이 없습니다.' });
+        }
     }
 
     const result = await modelCall(boardModel.writeInsert, bo_table, data, req.files);
-    res.json(result);
+
+    if(data.wr_reply > 0) { // 댓글이면 내용을 가져와야 함(바로 띄워주려면) 
+        const options = {
+            stf: ['wr_id'],
+            stc: ['eq'],
+            stx: [result.wr_id],
+        };
+        const item = await modelCall(boardModel.getList, bo_table, config, options, req.user);
+        res.json(item.items[0]);
+    } else {
+        res.json(result);
+    }
 });
 
 // 게시물 수정
@@ -79,11 +98,23 @@ router.put('/write/:bo_table/:wr_id', async (req, res) => {
     if (modifyMsg) return res.json({ err: modifyMsg });
 
     const result = await modelCall(boardModel.writeUpdate, bo_table, wr_id, data, req.files);
-    res.json(result);
+    if(data.wr_reply > 0) { // 댓글이면 내용을 가져와야 함(바로 띄워주려면) 
+        const options = {
+            stf: ['wr_id'],
+            stc: ['eq'],
+            stx: [result.wr_id],
+        };
+        const item = await modelCall(boardModel.getList, bo_table, config, options, req.user);
+        res.json(item.items[0]);
+    } else {
+        res.json(result);
+    }
 });
 
 // 게시물 목록 가져오기
 router.get('/list/:bo_table', async (req, res) => {
+    console.dir(req.params)
+    console.dir(req.query)
     const { bo_table } = req.params;
     // 권한 검사
     const config = await modelCall(boardModel.getConfig, bo_table);

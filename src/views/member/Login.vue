@@ -65,15 +65,18 @@ export default {
   },
   methods: {
     ...mapActions("user", ["signInLocal", "findIdLocal", "findPwLocal", "signInSocial"]),
+    routeNext() {
+      this.$router.push("/");
+    },
     async loginLocal(form) {
       this.isLoading = true;
       const data = await this.signInLocal(form);
       this.isLoading = false;
-      if (data) {
-        this.$router.push("/");
+      if (data) {        
         this.$toast.info(
           `${this.$store.state.user.member.mb_name}님 환영합니다.`
         );
+        this.routeNext();
       }
     },
     async findId(form) {
@@ -130,10 +133,10 @@ export default {
 				// this.SET_TOKEN(payload.token);
 				// 최초 로그인 정보 변경하는 페이지로 이동해야 하고
 				
-				this.$router.push("/");
         this.$toast.info(
           `${this.$store.state.user.member.mb_name}님 환영합니다.`
         );
+        this.routeNext();
 			}
 			// window.removeEventListener('message', this.googleLoginCallback);
 		}
