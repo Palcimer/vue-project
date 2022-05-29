@@ -1,8 +1,8 @@
 <template>
   <div>
     <v-divider />
-    <v-list-item>
-      <div>
+    <v-list-item class="align-start">
+      <div style="position: relative; top: 20px; left: -8px">
         <v-icon
           v-if="item.wr_dep > 0"
           :style="{ 'padding-left': `${(item.wr_dep - 1) * 32 + 8}px` }"
@@ -11,11 +11,14 @@
         </v-icon>
       </div>
       <v-list-item-content>
-        <v-subheader>
-          <v-avatar size="28" color="primary">{{ item.wr_name[0] }}</v-avatar>
-          <div>
+        <v-subheader class="pl-0">
+          <v-avatar size="28" color="primary" class="white--text">{{
+            item.wr_name[0]
+          }}</v-avatar>
+          <div class="ml-2">
             {{ item.wr_name }}
-            <i>{{ item.wr_email }}</i>
+            <i class="ml-2">{{ item.wr_email }}</i>
+            {{ item.wr_id }}
           </div>
           <v-spacer />
           <v-icon small>mdi-clock-outline</v-icon>
@@ -30,7 +33,25 @@
           @onClose="isModify = false"
           @onUpdate="modifyComment"
         />
-        <div v-else class="text-pre">{{ item.wr_content }}</div>
+        <div
+          v-else
+          class="text-pre"
+          :style="{
+            'font-size': '1.1em',
+            'line-height': '1.5em',
+          }"
+        >
+          {{ item.wr_content }}
+        </div>
+        <display-like
+          :item="item"
+          :table="table"
+          :btnProps="{ tile: true, small: true }"
+          :icon="{ like: 'mdi-emoticon-excited-outline' }"
+          style="padding-left: 4px"
+          likeOnly
+        />
+
         <div class="d-flex">
           <board-button
             v-if="access.comment && !!member"
@@ -52,6 +73,7 @@
             label="삭제"
             icon="mdi-trash-can-outline"
             plain
+            @click="deleteComment(item)"
           />
         </div>
         <comment-form
@@ -72,9 +94,10 @@ import { mapGetters, mapState } from "vuex";
 import { LV } from "../../../../../../util/level";
 import BoardButton from "./BoardButton.vue";
 import CommentForm from "./CommentForm.vue";
+import DisplayLike from "./DisplayLike.vue";
 import DisplayTime from "./DisplayTime.vue";
 export default {
-  components: { DisplayTime, BoardButton, CommentForm },
+  components: { DisplayTime, BoardButton, CommentForm, DisplayLike },
   name: "CommentItem",
   props: {
     item: { type: Object, required: true },
@@ -114,6 +137,23 @@ export default {
     },
     modifyComment(item) {
       this.$emit("onUpdate", item);
+    },
+    async deleteComment(item) {
+      const deleteConfirm = await this.$ezNotify.confirm(
+        "댓글을 삭제하시겠습니까?",
+        "삭제 확인",
+        { icon: " mdi-alert" }
+      );
+
+      if (!deleteConfirm) return;
+
+      const data = await this.$axios.delete(
+        `/api/board/${this.table}/${item.wr_id}`
+      );
+      if (data) {
+        this.$toast.info(`${data} 개의 댓글을 삭제하였습니다.`);
+        this.$emit('onRemove', item, data);
+      }
     },
   },
 };

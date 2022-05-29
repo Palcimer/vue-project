@@ -16,7 +16,14 @@
         :access="access"
         @onReComment="reComment"
         @onUpdate="updateItem"
+        @onRemove="deleteItem"
       />
+      <v-list-item v-if="loading">
+          <v-list-item-content>
+              <v-progress-circular :value="20" indeterminate></v-progress-circular>
+          </v-list-item-content>
+      </v-list-item>
+      <div v-else v-intersect="onIntersect"></div>
     </v-list>
   </v-card-text>
 </template>
@@ -47,9 +54,8 @@ export default {
       items: [],
       loading: false,
       options: {
-        // wr_reply: this.id,
-        itemPerPage: 5,
-        page: 1,
+        itemsPerPage: 5,
+        limitStart: 0, // 불러오기 시작할 코멘트 위치
         sortBy: ["wr_grp", "wr_order"],
         sortDesc: [false, true],
         stf: ["wr_reply"],
@@ -82,12 +88,14 @@ export default {
       this.loading = false;
     },
     setData(data) {
-      this.items = data.items;
+      this.items = [...this.items, ...data.items];
       this.totalItems = data.totalItems;
+      this.options.limitStart += this.options.itemsPerPage;
     },
     updateItem(item) {
+      // 댓글 추가
       console.log("updateItem", item);
-      const find = this.items.find(position => position.wr_id == item.wr_id);
+      const find = this.items.find((position) => position.wr_id == item.wr_id);
       if (find) {
         // 수정
         const idx = this.items.indexOf(find);
@@ -96,17 +104,39 @@ export default {
         // 신규
         this.items.unshift(item);
         this.totalItems++;
+        this.options.limitStart++;
       }
     },
     reComment(parent, item) {
+      // 댓글에 댓글 추가
       console.log("reComment", parent, item);
       const find = this.items.find((item) => item.wr_id == parent.wr_id);
       if (find) {
         const idx = this.items.indexOf(find);
         this.items.splice(idx + 1, 0, item);
         this.totalItems++;
+        this.options.limitStart++;
       }
     },
+    onIntersect(entries, observer) {
+    if(this.items.length < this.totalItems) {
+        if(entries[0].isIntersecting) {
+            this.fetchData();
+        }
+        console.log("onIntersect=======", entries[0].isIntersecting);
+    }
+      // this.isIntersecting = entries[0].isIntersecting;
+    },
+    deleteItem(item, cnt) {
+        console.log(this.totalItems, this.options.limitStart);
+        const idx = this.items.indexOf(item);
+        if(idx >= 0) {
+            this.items.splice(idx, cnt);
+            this.totalItems -= cnt;
+            this.options.limitStart -= cnt;
+        }
+        console.log(this.totalItems, this.options.limitStart);
+    }
   },
 };
 </script>

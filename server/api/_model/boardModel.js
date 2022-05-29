@@ -8,6 +8,7 @@ const jwt = require('../../plugins/jwt');
 const tagModel = require('./tagModel');
 const likeModel = require('./likeModel');
 const { getSummary } = require('../../../util/lib');
+const { LV } = require('../../../util/level');
 
 const boardModel = {
     async getConfig(bo_table) {
@@ -188,6 +189,14 @@ const boardModel = {
         // console.log("getList sql", sql);
         const [[{ totalItems }]] = await db.execute(sql.countQuery, sql.values);
         const [items] = await db.execute(sql.query, sql.values);
+        for (const item of items) {
+            if (member) {
+                item.likeFlag = await likeModel.getFlag(bo_table, item.wr_id, member.mb_id);
+            } else {
+                item.likeFlag = 0;
+            }
+        }
+        // console.log(items, totalItems);
         return { items, totalItems };
     },
 
@@ -207,7 +216,7 @@ const boardModel = {
         // 태그 목록 추가
         item.wrTags = await tagModel.getTags(bo_table, wr_id);
 
-        // TODO: 좋아요
+        // 좋아요
         if (member) {
             item.likeFlag = await likeModel.getFlag(bo_table, wr_id, member.mb_id);
         } else {
@@ -246,7 +255,6 @@ const boardModel = {
             wrFiles = JSON.parse(data.wrFiles);
             delete data.wrFiles;
         }
-        
 
         // 기존 첨부파일의 remove가 true이면 파일삭제
         for (const wrFile of wrFiles) {
@@ -306,7 +314,71 @@ const boardModel = {
         const sql = sqlHelper.SelectSimple(table, { wr_id, wr_password }, ['COUNT(*) as cnt']);
         const [[{ cnt }]] = await db.execute(sql.query, sql.values);
         return cnt;
-    }
+    },
+    async deleteItem(bo_table, wr_id, member) {
+        const table = `${TABLE.WRITE}${bo_table}`;
+        let delCount = 0;
+
+        // 답글 목록 가져오기
+        const childrenSql = sqlHelper.SelectSimple(table, { wr_parent: wr_id }, ['wr_id']);
+        const [children] = await db.execute(childrenSql.query, childrenSql.values);
+
+        // 최고관리자일 경우 전부 삭제
+        if (member && member.mb_level >= LV.SUPER) {
+            // 답글들을 반복해서 모두 삭제(재귀)
+            for (const child of children) {
+                delCount += await boardModel.deleteItem(bo_table, child.wr_id, member);
+            }
+            delCount += await boardModel.executeDeletion(bo_table, wr_id);
+        } else {
+            // 최고관리자 이외            
+            if (children.length == 0) { // 답글 없음
+                // 댓글이 있는지 확인
+                const commentSql = sqlHelper.SelectSimple(table, { wr_reply: wr_id }, ['wr_id']);
+                const [commentList] = await db.execute(commentSql.query, commentSql.values);
+                if (commentList.length == 0) {
+                    // 댓글이 없으면 삭제
+                    delCount += await boardModel.executeDeletion(bo_table, wr_id);
+                } else {
+                    // 댓글이 있으면 삭제 불가 에러 처리
+                    throw new Error('댓글이 있어 삭제할 수 없습니다.');
+                }
+            } else { // 답글 목록이 있으면 삭제 불가 에러 처리
+                throw new Error('답글이 있어 삭제할 수 없습니다.');
+            }
+        }
+        return delCount;
+    },
+    async executeDeletion(bo_table, wr_id) {
+        const table = `${TABLE.WRITE}${bo_table}`;
+        console.log("executeDeletion=============", table);
+
+        // 태그 목록 삭제
+        await tagModel.deleteTags(bo_table, wr_id);
+        console.log("태그 목록 삭제 후");
+
+        // 관련 파일 삭제
+        const fileSql = sqlHelper.SelectSimple(TABLE.BOARD_FILE, {
+            bo_table, wr_id
+        }, ['bf_id', 'bf_src']);
+        const [files] = await db.execute(fileSql.query, fileSql.values);
+        for(const file of files) {
+            await boardModel.removeFile(bo_table, file);
+        }
+        console.log("파일 삭제 후");
+
+        // 댓글 삭제
+        const commentSql = sqlHelper.DeleteSimple(table, {wr_reply: wr_id});
+        await db.execute(commentSql.query, commentSql.values);
+        console.log("댓글 삭제 후");
+
+        // 게시물 삭제
+        const sql = sqlHelper.DeleteSimple(table, {wr_id});
+        const [rows] = await db.execute(sql.query, sql.values);
+        console.log("최종 삭제");
+
+        return rows.affectedRows;
+    },
 };
 
 module.exports = boardModel;

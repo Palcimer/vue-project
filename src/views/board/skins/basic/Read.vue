@@ -80,6 +80,17 @@
             :loading="deleteLoading"
           />
           <!-- TODO: 비회원 게시물 삭제 버튼 -->
+          <modify-button
+            v-if="isModifiable == 'NO_MEMBER'"
+            class="ml-2"
+            color="info"
+            :table="table"
+            :wr_id="item.wr_id"
+            label="삭제"
+            @onValid = "deleteItem"
+          >
+          <v-icon left>mdi-pencil</v-icon>삭제
+          </modify-button>
           <!-- 삭제 끝 -->
         </v-col>
 
@@ -212,6 +223,7 @@ export default {
     async deleteItem(token) {
       this.deleteLoading = true;
 
+      console.log(this.table);
       const deleteConfirm = await this.$ezNotify.confirm(
         "게시글을 삭제하시겠습니까?",
         "삭제 확인",
@@ -222,6 +234,10 @@ export default {
         const data = await this.$axios.delete(
           `/api/board/${this.table}/${this.item.wr_id}?token=${token}`
         );
+        if(data) {
+          this.$toast.info(`${data} 개의 게시물을 삭제하였습니다.`);
+          this.$router.push(`/board/${this.table}`);
+        }
       }
 
       this.deleteLoading = false;

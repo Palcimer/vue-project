@@ -159,10 +159,26 @@ router.get('/download/:bo_table/:filename', async (req, res) => {
     res.download(srcFile, filename);
 });
 
+// 게시물 삭제
 router.delete('/:bo_table/:wr_id', async (req, res) => {
     const { bo_table, wr_id } = req.params;
     const { token } = req.query;
-    res.json({ bo_table, wr_id, token });
+    // 게시판 설정 가져오기
+    const config = await modelCall(boardModel.getConfig, bo_table);
+
+    // 게시물 가져오기
+    const data = await modelCall(boardModel.getItem, bo_table, wr_id, req.user);
+
+    // 권한 확인
+    data.token = token;
+    const modifyMsg = await isModify(req, config, req.user, data);
+    if (modifyMsg) return res.json({ err: modifyMsg });
+
+    // 삭제
+    const result = await modelCall(boardModel.deleteItem, bo_table, wr_id, req.user);
+
+    // res.json({ bo_table, wr_id, token });
+    res.json(result);
 });
 
 router.post('/check/:bo_table/:wr_id', async (req, res) => {

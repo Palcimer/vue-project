@@ -109,9 +109,12 @@ const sqlHelper = {
 
 		// 페이지네이션
 		let limit = "";
-		if (options.page && options.itemsPerPage) {
-			const start = (options.page - 1) * options.itemsPerPage;
-			limit = ` LIMIT ${start}, ${options.itemsPerPage} `;
+		if (options.itemsPerPage) {
+			console.log(options);
+			if (options.itemsPerPage > 0) {
+				const start = options.limitStart || (options.page - 1) * options.itemsPerPage;
+				limit = ` LIMIT ${start}, ${options.itemsPerPage} `;
+			}
 		}
 
 		let query = `SELECT * FROM ${table} ${where} ${order} ${limit}`;
@@ -137,15 +140,15 @@ const sqlHelper = {
 	InsertArray(table, data) {
 		let sql;
 		let prepare;
-		for(const i in data) {
+		for (const i in data) {
 			const datum = data[i];
 			const keys = Object.keys(datum);
-			if(i == 0) {
+			if (i == 0) {
 				sql = sqlHelper.Insert(table, datum);
 				prepare = new Array(keys.length).fill('?').join(', ');
 			} else {
 				sql.query += `, (${prepare})`;
-				for(const key of keys) {
+				for (const key of keys) {
 					sql.values.push(datum[key]);
 				}
 			}
