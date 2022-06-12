@@ -187,15 +187,22 @@ const boardModel = {
 
         const sql = sqlHelper.SelectLimit(table, options);
         // console.log("getList sql", sql);
-        const [[{ totalItems }]] = await db.execute(sql.countQuery, sql.values);
         const [items] = await db.execute(sql.query, sql.values);
+
         for (const item of items) {
             if (member) {
                 item.likeFlag = await likeModel.getFlag(bo_table, item.wr_id, member.mb_id);
             } else {
                 item.likeFlag = 0;
             }
+            // 첨부파일 목록 추가
+            const files = await boardModel.getItemFiles(bo_table, item.wr_id, item.wr_content);
+            item.wrImgs = files.wrImgs;
+            item.wrFiles = files.wrFiles;
         }
+        
+        const [[{ totalItems }]] = await db.execute(sql.countQuery, sql.values);
+
         // console.log(items, totalItems);
         return { items, totalItems };
     },
@@ -362,18 +369,18 @@ const boardModel = {
             bo_table, wr_id
         }, ['bf_id', 'bf_src']);
         const [files] = await db.execute(fileSql.query, fileSql.values);
-        for(const file of files) {
+        for (const file of files) {
             await boardModel.removeFile(bo_table, file);
         }
         console.log("파일 삭제 후");
 
         // 댓글 삭제
-        const commentSql = sqlHelper.DeleteSimple(table, {wr_reply: wr_id});
+        const commentSql = sqlHelper.DeleteSimple(table, { wr_reply: wr_id });
         await db.execute(commentSql.query, commentSql.values);
         console.log("댓글 삭제 후");
 
         // 게시물 삭제
-        const sql = sqlHelper.DeleteSimple(table, {wr_id});
+        const sql = sqlHelper.DeleteSimple(table, { wr_id });
         const [rows] = await db.execute(sql.query, sql.values);
         console.log("최종 삭제");
 

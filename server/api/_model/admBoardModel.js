@@ -150,7 +150,7 @@ const admBoardModel = {
         }
 
         // 테이블에서 삭제
-        const deleteSql = sqlHelper.SelectSimple(TABLE.BOARD_FILE, { bo_table });
+        const deleteSql = sqlHelper.DeleteSimple(TABLE.BOARD_FILE, { bo_table });
         await db.execute(deleteSql.query, deleteSql.values);
 
         return files.length;
