@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import axios from 'axios';
+import moment from '../../../util/moment';
 
 export const state = () => ({
     config: null,
@@ -18,6 +19,11 @@ export const mutations = {
     },
     SET_READ(state, read) {
         state.read = read;
+    },
+    VIEW_UP(state) {
+        if(state.read) {
+            state.read.wr_view++;
+        }
     }
 }
 

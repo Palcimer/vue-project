@@ -62,7 +62,7 @@
             :table="table"
             :wr_id="item.wr_id"
             label="수정"
-            @onValid = "modifyItem"
+            @onValid="modifyItem"
           >
             <v-icon left>mdi-pencil</v-icon>수정
           </modify-button>
@@ -87,9 +87,9 @@
             :table="table"
             :wr_id="item.wr_id"
             label="삭제"
-            @onValid = "deleteItem"
+            @onValid="deleteItem"
           >
-          <v-icon left>mdi-pencil</v-icon>삭제
+            <v-icon left>mdi-pencil</v-icon>삭제
           </modify-button>
           <!-- 삭제 끝 -->
         </v-col>
@@ -121,7 +121,7 @@
           />
         </v-col>
       </v-card-actions>
-      <comment-list :id="item.wr_id" :table="table" :access="access"/>
+      <comment-list :id="item.wr_id" :table="table" :access="access" />
     </v-card>
     <!-- <div>
     Basic View
@@ -142,7 +142,8 @@ import FileDownload from "./component/FileDownload.vue";
 import BoardButton from "./component/BoardButton.vue";
 import DisplayLike from "./component/DisplayLike.vue";
 import ModifyButton from "./component/modifyButton.vue";
-import CommentList from './component/CommentList.vue';
+import CommentList from "./component/CommentList.vue";
+
 export default {
   components: {
     SsrRenderer,
@@ -198,6 +199,8 @@ export default {
   mounted() {
     if (!this.item) {
       this.fetchData();
+    } else {
+      this.viewUp();
     }
   },
   destroyed() {
@@ -205,7 +208,7 @@ export default {
   },
   methods: {
     ...mapActions("board", ["getBoardRead"]),
-    ...mapMutations("board", ["SET_READ"]),
+    ...mapMutations("board", ["SET_READ", "VIEW_UP"]),
     async fetchData() {
       console.log(this.id);
 
@@ -219,6 +222,37 @@ export default {
         id: this.id,
         headers,
       });
+
+      if(!this.$ssrContext) {
+        this.viewUp();
+      }
+    },
+    async viewUp() {
+      console.log("READ.vue viewUp===================");
+      const today = this.$moment().format("L");
+      const view = JSON.parse(window.localStorage.getItem("view")) || {};
+      const keys = Object.keys(view);
+      for (const key of keys) {
+        if (key != today) {
+          // 오늘 것만 남기고 삭제
+          delete view[key];
+        }
+      }
+      if (!view[today]) {
+        view[today] = {};
+      }
+      const curWrite = `${this.table}_${this.id}`;
+      if (!view[today][curWrite]) {
+        // 처음 본 게시물
+        // 조회수 증가
+        view[today][curWrite] = true;
+        // 서버에 증가 요청
+        await this.$axios.put(`/api/board/view/${this.table}/${this.id}`);
+        // Mutation view 증가
+        this.viewUp();
+
+        window.localStorage.setItem("view", JSON.stringify(view));
+      }
     },
     async deleteItem(token) {
       this.deleteLoading = true;
@@ -234,7 +268,7 @@ export default {
         const data = await this.$axios.delete(
           `/api/board/${this.table}/${this.item.wr_id}?token=${token}`
         );
-        if(data) {
+        if (data) {
           this.$toast.info(`${data} 개의 게시물을 삭제하였습니다.`);
           this.$router.push(`/board/${this.table}`);
         }
@@ -243,7 +277,9 @@ export default {
       this.deleteLoading = false;
     },
     modifyItem(token) {
-      this.$router.push(`/board/${this.table}/${this.item.wr_id}/?act=write&token=${token}`);
+      this.$router.push(
+        `/board/${this.table}/${this.item.wr_id}/?act=write&token=${token}`
+      );
     },
   },
 };

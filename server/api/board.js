@@ -194,4 +194,12 @@ router.post('/check/:bo_table/:wr_id', async (req, res) => {
     }
 })
 
+// 조회수 증가
+router.put('/view/:bo_table/:wr_id', async (req, res) => {
+    const {bo_table, wr_id} = req.params;
+    console.log("조회수 증가")
+    const result = await modelCall(boardModel.viewUp, bo_table, wr_id);
+    res.json(result);
+})
+
 module.exports = router;

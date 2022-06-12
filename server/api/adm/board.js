@@ -27,4 +27,10 @@ router.put('/:bo_table', async (req, res) => {
     res.json(result);
 });
 
+// 테이블 삭제
+router.delete('/:bo_table', async (req, res) => {
+    const result = await modelCall(admBoardModel.removeBoard, req);
+    res.json(result);
+});
+
 module.exports = router;

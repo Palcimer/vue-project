@@ -379,6 +379,13 @@ const boardModel = {
 
         return rows.affectedRows;
     },
+    async viewUp(bo_table, wr_id) {
+        const table = `${TABLE.WRITE}${bo_table}`;
+        const query = `UPDATE ${table} SET wr_view=wr_view+1 WHERE wr_id=?`;
+        const values = [wr_id];
+        const [rows] = await db.execute(query, values);
+        return rows.affectedRows;
+    },
 };
 
 module.exports = boardModel;
