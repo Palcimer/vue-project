@@ -194,6 +194,25 @@ router.post('/check/:bo_table/:wr_id', async (req, res) => {
     }
 })
 
+// 최근 게시물
+router.get('/latest/:bo_table', async (req, res) => {
+    const {bo_table} = req.params;
+    const {limit} = req.query;
+    const config = await modelCall(boardModel.getConfig, bo_table);
+    const options = {
+        page: 1,
+        itemsPerPage: limit,
+        stf: ['wr_reply'],
+        stc: ['eq'],
+        stx: ['0'],
+    };
+    const result = await modelCall(boardModel.getList, bo_table, config, options, req.user);
+    result.subject = config.bo_subject;
+    delete result.totalItems;
+    res.json(result);
+    
+})
+
 // 조회수 증가
 router.put('/view/:bo_table/:wr_id', async (req, res) => {
     const {bo_table, wr_id} = req.params;

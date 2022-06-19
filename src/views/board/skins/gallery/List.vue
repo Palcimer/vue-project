@@ -45,7 +45,7 @@
             class="test-decoration-none"
           >
             <v-img
-              :src="getImage(item)"
+              :src="getImage(table, item, imgSize)"
               :aspect-ratio="16 / 9"
               class="align-end"
             >
@@ -80,7 +80,7 @@
 
 <script>
 import qs from "qs";
-import { deepCopy } from "../../../../../util/lib";
+import { deepCopy, getImage } from "../../../../../util/lib";
 import { mapActions, mapMutations, mapState } from "vuex";
 import SearchField from "../../../../components/layout/SearchField.vue";
 import CateSelect from "./component/CateSelect.vue";
@@ -199,6 +199,7 @@ export default {
       });
       return arr;
     },
+    getImage: () => getImage,
   },
   watch: {
     options: {
@@ -278,28 +279,6 @@ export default {
       // TODO: 카테고리별로 검색
 
       return payload;
-    },
-    getImage(item) {
-      // 본문 이미지
-      if (item.wrImgs.length) {
-        return `/upload/${this.table}/${item.wrImgs[0].bf_src}?w=${this.imgSize.w}&h=${this.imgSize.h}`;
-      }
-      // 첨부파일 이미지
-      if (item.wrFiles.length) {
-        for (const file of item.wrFiles) {
-          if (file.bf_type.startsWith("image")) {
-            return `/upload/${this.table}/${file.bf_src}?w=${this.imgSize.w}&h=${this.imgSize.h}`;
-          }
-        }
-      }
-      // 본문 url 링크로 올린 이미지
-      const pattern = /<img[^>]*src=\"([^\"]+)\"[^>]*>/;
-      const matches = item.wr_content.match(pattern);
-      if (matches) {
-        return matches[1];
-      }
-      // 이미지가 없는 경우
-      return "/img/no-image.jpg";
     },
     async fetchData() {
       console.log("List.vue fetchData=======");
