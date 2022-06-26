@@ -49,6 +49,11 @@ export default {
           icon: "mdi-clipboard-text-multiple-outline",
           to: "/adm/board/list",
         },
+        {
+          title: "팝업 관리",
+          icon: "mdi-layers-triple-outline",
+          to: "/adm/board/popup",
+        },
       ],
     };
   },

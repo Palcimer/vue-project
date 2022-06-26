@@ -9,13 +9,15 @@ async function isModify(req, config, member, wrItem) {
     console.log("token===========", wrItem.token, req.session.checkToken);
     let msg = "수정권한이 없습니다.";
     if (member) {
-        if (member.mb_level >= LV.SUPER || member.mb_id == wrItem.mb_id) {
+        if (config.bo_table == 'popup' && member.mb_level >= LV.ADMIN) {
+            msg = '';
+        } else if (member.mb_level >= LV.SUPER || member.mb_id == wrItem.mb_id) {
             msg = '';
         }
     } else { // 비회원 수정
         // 세션에 비밀번호 정보 
         // 비밀번호 일치 검사
-        if (typeof(wrItem.token) === 'string' && wrItem.token == req.session.checkToken) {
+        if (typeof (wrItem.token) === 'string' && wrItem.token == req.session.checkToken) {
             msg = '';
         }
     }
@@ -58,8 +60,8 @@ router.post('/write/:bo_table', async (req, res) => {
 
     // 권한 검사
     const config = await modelCall(boardModel.getConfig, bo_table);
-    
-    if(data.wr_reply == 0) { // wr_reply = 0: 게시물
+
+    if (data.wr_reply == 0) { // wr_reply = 0: 게시물
         const grant = isGrant(req, config.bo_write_level);
         if (!grant) {
             return res.json({ err: '게시물 작성 권한이 없습니다.' });
@@ -73,7 +75,7 @@ router.post('/write/:bo_table', async (req, res) => {
 
     const result = await modelCall(boardModel.writeInsert, bo_table, data, req.files);
 
-    if(data.wr_reply > 0) { // 댓글이면 내용을 가져와야 함(바로 띄워주려면) 
+    if (data.wr_reply > 0) { // 댓글이면 내용을 가져와야 함(바로 띄워주려면) 
         const options = {
             stf: ['wr_id'],
             stc: ['eq'],
@@ -98,7 +100,7 @@ router.put('/write/:bo_table/:wr_id', async (req, res) => {
     if (modifyMsg) return res.json({ err: modifyMsg });
 
     const result = await modelCall(boardModel.writeUpdate, bo_table, wr_id, data, req.files);
-    if(data.wr_reply > 0) { // 댓글이면 내용을 가져와야 함(바로 띄워주려면) 
+    if (data.wr_reply > 0) { // 댓글이면 내용을 가져와야 함(바로 띄워주려면) 
         const options = {
             stf: ['wr_id'],
             stc: ['eq'],
@@ -196,8 +198,8 @@ router.post('/check/:bo_table/:wr_id', async (req, res) => {
 
 // 최근 게시물
 router.get('/latest/:bo_table', async (req, res) => {
-    const {bo_table} = req.params;
-    const {limit} = req.query;
+    const { bo_table } = req.params;
+    const { limit } = req.query;
     const config = await modelCall(boardModel.getConfig, bo_table);
     const options = {
         page: 1,
@@ -210,12 +212,12 @@ router.get('/latest/:bo_table', async (req, res) => {
     result.subject = config.bo_subject;
     delete result.totalItems;
     res.json(result);
-    
+
 })
 
 // 조회수 증가
 router.put('/view/:bo_table/:wr_id', async (req, res) => {
-    const {bo_table, wr_id} = req.params;
+    const { bo_table, wr_id } = req.params;
     console.log("조회수 증가")
     const result = await modelCall(boardModel.viewUp, bo_table, wr_id);
     res.json(result);
