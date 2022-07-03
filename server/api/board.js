@@ -223,4 +223,11 @@ router.put('/view/:bo_table/:wr_id', async (req, res) => {
     res.json(result);
 })
 
+// 팝업 리스트 가져오기
+router.get('/popup-list', async (req, res) => {
+    const { ignores } = req.query;
+    const result = await modelCall(boardModel.popupList, ignores);
+    res.json(result);
+});
+
 module.exports = router;

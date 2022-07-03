@@ -1,5 +1,6 @@
 <template>
   <div>
+    <popup-opener/>
     <board-latest table="tt" skin="basic" :limit="4"/>
     <!-- <board-latest table="testt" skin="gallery" :limit="4"/> -->
     <board-latest table="testt" skin="slider" :limit="5"/>
@@ -8,8 +9,10 @@
 <script>
 import { mapState } from 'vuex';
 import BoardLatest from '../components/Latest/BoardLatest.vue';
+import PopupOpener from './board/skins/popup/component/PopupOpener.vue';
+
 export default {
-  components: { BoardLatest },
+  components: { BoardLatest, PopupOpener },
   name: "Home",
 	title() {
 		return this.title

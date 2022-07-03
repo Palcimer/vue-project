@@ -1,7 +1,7 @@
 <template>
   <div class="pop-wrap elevation-4" :style="wrapStyle">
-    <v-btn v-bind="linkAttrs" text block height="auto">
-      <img :src="popImg" :alt="item.title" :width="width" :height="height"/>
+    <v-btn v-bind="linkAttrs" text block height="auto" style="padding: 0px">
+      <img :src="popImg" :alt="item.title" :width="width" :height="height" :style="imgStyle" />
     </v-btn>
     <div class="d-flex px-2">
       <v-checkbox
@@ -28,12 +28,14 @@
 
 <script>
 import { getImage } from "../../../../../../util/lib";
+import VueCookies from "vue-cookies";
 
 export default {
   name: "PopupView",
   props: {
     item: { type: Object, required: true },
     table: { type: String, required: true },
+    idx: { type: Number, default: 0 },
   },
   data() {
     return {
@@ -60,20 +62,42 @@ export default {
       return this.item.wr_1;
     },
     wrapStyle() {
-      return {
-        left: this.left + "px",
-        top: this.top + "px",
-        width: this.width + "px",
-        height: this.height + 30 + "px",
+      let st;
+      if (this.$vuetify.breakpoint.xs) {
+        st = {
+          left: "0px",
+          top: "0px",
+          width: "90%",
+          height: "auto",
+          marginLeft: "5%",
+        };
+      } else {
+        st = {
+          left: this.left + "px",
+          top: this.top + "px",
+          width: this.width + "px",
+          height: this.height + 30 + "px",
+        };
+      }
+      st = {
+        ...st,
+        position: "fixed",
+        background: "#aaa",
+        overflow: "hidden",
+        zIndex: 3000,
       };
+      return st;
     },
     popImg() {
       return getImage(this.table, this.item, { w: this.width, h: this.height });
     },
     imgStyle() {
-      return {
-        width: "100%",
-      };
+      if (this.$vuetify.breakpoint.xs) {
+        return {
+          width: "100%",
+          height: "auto",
+        };
+      }
     },
     linkAttrs() {
       if (this.link.startsWith("http")) {
@@ -94,16 +118,30 @@ export default {
   },
   methods: {
     close() {
-      this.$emit("onClose");
+      if (this.isCheck) {
+        const expire = this.expired * 24 * 60 * 60;
+        VueCookies.set(`pop-${this.item.wr_id}`, this.item.wr_id, expire);
+      }
+      this.$emit("onClose", this.item);
     },
   },
 };
 </script>
 
 <style>
-.pop-wrap {
-  position: fixed;
-  background: #bbb;
-  overflow: hidden;
+@media only screen and (max-width: 600px) {
+  /* .pop-wrap {
+    left: 0px !important;
+    top: 60px !important;
+    width: 90% !important;
+    height: auto !important;
+    margin-left: 5%;
+  }
+  .pop-wrap a {
+      padding: 0px !important;
+  }
+  .pop-wrap img {
+      height: auto;
+  } */
 }
 </style>

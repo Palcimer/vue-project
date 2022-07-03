@@ -51,6 +51,11 @@ const routes = [
     name: 'Board',
   	component: () => import(/* webpackChunkName: "board" */ '../views/board/Board.vue')
   },
+  {
+    path: '/search',
+    name: 'TwitterSearch',
+  	component: () => import(/* webpackChunkName: "error" */ '../views/TwitterSearch.vue')
+  },
 	{
     path: '*',
     name: 'Error',
