@@ -1,11 +1,10 @@
 <template>
-  <div></div>
+  <div>Company Skin</div>
 </template>
 
 <script>
 export default {
-    name: 'BoardError',
-    
+
 }
 </script>
 

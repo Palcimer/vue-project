@@ -52,9 +52,14 @@ const routes = [
   	component: () => import(/* webpackChunkName: "board" */ '../views/board/Board.vue')
   },
   {
+    path: '/contents/:wr_1',
+    name: 'Contents',
+  	component: () => import(/* webpackChunkName: "contents" */ '../views/contents/ContentsRenderer.vue')
+  },
+  {
     path: '/search',
     name: 'TwitterSearch',
-  	component: () => import(/* webpackChunkName: "error" */ '../views/TwitterSearch.vue')
+  	component: () => import(/* webpackChunkName: "twitter" */ '../views/TwitterSearch.vue')
   },
 	{
     path: '*',

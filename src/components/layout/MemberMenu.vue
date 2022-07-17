@@ -50,6 +50,11 @@ export default {
           to: "/adm/board/list",
         },
         {
+          title: "내용 관리",
+          icon: "mdi-content-paste",
+          to: "/board/contents",
+        },
+        {
           title: "팝업 관리",
           icon: "mdi-layers-triple-outline",
           to: "/adm/board/popup",

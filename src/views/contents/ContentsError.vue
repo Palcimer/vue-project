@@ -1,11 +1,11 @@
 <template>
-  <div></div>
+  <div>contents error
+  </div>
 </template>
 
 <script>
 export default {
-    name: 'BoardError',
-    
+    name: "ContentsError",
 }
 </script>
 
