@@ -20,4 +20,5 @@ jobs:
             cd ~/vue-project          
             sudo git pull
             sudo yarn
+            
             pm2 reload all
