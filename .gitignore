@@ -25,5 +25,7 @@ pnpm-debug.log*
 *.sln
 *.sw?
 *copy.*
+/server/upload
+/server/logs
 
 yarn.lock

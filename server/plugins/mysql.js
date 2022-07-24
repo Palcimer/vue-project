@@ -5,6 +5,7 @@ function createDatabase() {
 	let instance = null;
 	return {
 		getInstance : function() {
+			console.log(process.env.DB_HOST, process.env.DB_USER, process.env.DB_PASSWORD, process.env.DB_DATABASE)
 			if(instance == null) {
 				const config = {
 					host : process.env.DB_HOST,
