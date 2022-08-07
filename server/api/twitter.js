@@ -6,11 +6,12 @@ const CLIENT_SECRET = process.env.TWITTER_CLIENT_SECRET;
 const CALLBACK_URL = process.env.TWITTER_CALLBACK_URL;
 let verifier = '';
 
-router.get('/init', (req, res) => {
-  console.log(CLIENT_ID, CLIENT_SECRET, CALLBACK_URL);
+router.get('/init', async (req, res) => {
     const client = new TwitterApi({ clientId: CLIENT_ID, clientSecret: CLIENT_SECRET });
-    const auth_link = client.generateOAuth2AuthLink(CALLBACK_URL, { scope: ['tweet.read', 'users.read', 'bookmark.read'] });
+    const auth_link = await client.generateOAuth2AuthLink(CALLBACK_URL, { scope: ['tweet.read', 'users.read', 'bookmark.read'] });
+    console.log(auth_link);
     verifier = auth_link.codeVerifier;
+    console.log(verifier);
     res.json(auth_link);
 })
 
@@ -46,7 +47,8 @@ router.get('/search', async (req, res) => {
 
   // Obtain access token
   const client = new TwitterApi({ clientId: CLIENT_ID, clientSecret: CLIENT_SECRET });
-
+  console.log(code, verifier, CALLBACK_URL);
+  
   client.loginWithOAuth2({ code, codeVerifier: verifier, redirectUri: CALLBACK_URL })
     .then(async ({ client: loggedClient, accessToken, refreshToken, expiresIn }) => {
       // {loggedClient} is an authenticated client in behalf of some user
@@ -56,13 +58,14 @@ router.get('/search', async (req, res) => {
 
       // Example request
       console.log(loggedClient);
+      console.log(accessToken);
       try{
-
         const data = await loggedClient.v2.me();
+        console.log(data);
       } catch(e) {
           console.log(e);
       }
-      console.log(data);
+      
     })
     .catch(() => res.status(403).send('Invalid verifier or access tokens!'));
 });
