@@ -4,7 +4,9 @@ const TwitterApi = require('twitter-api-v2').default;
 const CLIENT_ID = process.env.TWITTER_CLIENT_ID;
 const CLIENT_SECRET = process.env.TWITTER_CLIENT_SECRET;
 const CALLBACK_URL = process.env.TWITTER_CALLBACK_URL;
+// const CALLBACK_URL = 'http://localhost:8080/api/twitter/search';
 let verifier = '';
+let challenge = '';
 
 router.get('/init', async (req, res) => {
     const client = new TwitterApi({ clientId: CLIENT_ID, clientSecret: CLIENT_SECRET });
@@ -46,28 +48,52 @@ router.get('/search', async (req, res) => {
 //   }
 
   // Obtain access token
-  const client = new TwitterApi({ clientId: CLIENT_ID, clientSecret: CLIENT_SECRET });
+  const client1 = new TwitterApi({ clientId: CLIENT_ID, clientSecret: CLIENT_SECRET });
   console.log(code, verifier, CALLBACK_URL);
   
-  client.loginWithOAuth2({ code, codeVerifier: verifier, redirectUri: CALLBACK_URL })
-    .then(async ({ client: loggedClient, accessToken, refreshToken, expiresIn }) => {
-      // {loggedClient} is an authenticated client in behalf of some user
-      // Store {accessToken} somewhere, it will be valid until {expiresIn} is hit.
-      // If you want to refresh your token later, store {refreshToken} (it is present if 'offline.access' has been given as scope)
-      console.log("SSSS");
+  try {
+    const { client, accessToken, refreshToken, expiresIn } = await client1.loginWithOAuth2({ code, codeVerifier: verifier, redirectUri: CALLBACK_URL });
+    console.log(client);
+    console.log(accessToken);
 
-      // Example request
-      console.log(loggedClient);
-      console.log(accessToken);
-      try{
-        const data = await loggedClient.v2.me();
-        console.log(data);
-      } catch(e) {
-          console.log(e);
-      }
+    try{
+      const data = await client.v2.me();
+      console.log(data);
+    } catch(e) {
+        console.log(e);
+    } 
+
+  } catch(e) {
+    console.log(e);
+    res.status(403).send('Invalid verifier or access tokens!')
+  }
+
+  console.log("SSSS");
+
+
+  
+  // client.loginWithOAuth2({ code, codeVerifier: verifier, redirectUri: CALLBACK_URL })
+  //   .then(async ({ client: loggedClient, accessToken, refreshToken, expiresIn }) => {
+  //     // {loggedClient} is an authenticated client in behalf of some user
+  //     // Store {accessToken} somewhere, it will be valid until {expiresIn} is hit.
+  //     // If you want to refresh your token later, store {refreshToken} (it is present if 'offline.access' has been given as scope)
+  //     console.log("SSSS");
+
+  //     // Example request
+  //     console.log(loggedClient);
+  //     console.log(accessToken);
+  //     try{
+  //       const data = await loggedClient.v2.me();
+  //       console.log(data);
+  //     } catch(e) {
+  //         console.log(e);
+  //     }
       
-    })
-    .catch(() => res.status(403).send('Invalid verifier or access tokens!'));
+  //   })
+  //   .catch((e) => {
+  //     console.log(e);
+  //     res.status(403).send('Invalid verifier or access tokens!')
+  //   });
 });
 
 module.exports = router;
